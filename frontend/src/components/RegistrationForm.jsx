@@ -105,6 +105,7 @@ const RegistrationForm = ({ onClose }) => {
                     <div className="mb-4">
                         <label htmlFor="email" className="text-left text-white text-xl mb-1 block">Email</label>
                         <input type="email" placeholder="Your login email." value={email} onChange={handleEmailChange} className="w-full px-4 py-2 rounded border border-zinc-500 bg-zinc-600 text-white focus:outline-none"/>
+                        {!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length !== 0 && <p className="text-red-500 text-sm mt-2">Invalid email address.</p>}
                     </div>
                     <div className="mb-2 relative">
                         <label htmlFor="password" className="text-left text-white text-xl mb-1 block">Password</label>

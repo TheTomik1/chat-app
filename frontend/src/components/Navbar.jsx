@@ -11,7 +11,6 @@ const Navbar = () => {
     const [showLogin, setShowLogin] = useState(false);
 
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [loggedInUserProfilePicture, setLoggedInUserProfilePicture] = useState("");
 
     const [navbarOpen, setNavbarOpen] = useState(false);
 
@@ -32,25 +31,10 @@ const Navbar = () => {
         checkAuthStatus();
     }, []);
 
-    useEffect(() => {
-        async function fetchProfilePicture() {
-            try {
-                const meProfilePictureResponse = await axios.get("http://localhost:8080/api/me-profile-picture", { responseType: "blob" });
-                const profilePictureObjectUrl = URL.createObjectURL(meProfilePictureResponse.data)
-
-                setLoggedInUserProfilePicture(profilePictureObjectUrl);
-            } catch (error) {
-                setLoggedInUserProfilePicture("https://robohash.org/noprofilepic.png")
-            }
-        }
-
-        fetchProfilePicture();
-    }, []);
-
     const handleLogout = async () => {
         try {
             await axios.post("http://localhost:8080/api/logout", null);
-            navigate("/");
+            navigate(0);
         } catch (error) {
             toastr.error("Logout failed. Try again later.");
         }
@@ -109,8 +93,8 @@ const Navbar = () => {
                                     <p onClick={handleLogout} className="text-white font-cubano hover:bg-zinc-700 px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
                                         Logout
                                     </p>
-                                    <Link to="/profile">
-                                        <img src={loggedInUserProfilePicture} alt={"Profile"} className="h-12 w-12 rounded-full select-none hover:cursor-pointer hover:scale-105 transition-transform"/>
+                                    <Link to="/profile" className="text-white font-cubano hover:bg-zinc-700 px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
+                                        Profile
                                     </Link>
                                 </div>
                             ) : (

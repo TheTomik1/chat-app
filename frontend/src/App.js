@@ -21,7 +21,7 @@ function App() {
     const location = useLocation();
 
     useEffect(() => {
-        const title = "Personal Calendar";
+        const title = "Chat App";
         const matchedRoute = routes.find(route => route.path === location.pathname);
         const componentName = matchedRoute ? getComponentName(matchedRoute.element) : "Not Found";
         document.title = `${title} | ${componentName}`;

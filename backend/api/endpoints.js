@@ -5,6 +5,8 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config({ path: __dirname + '/.env' });
 
+const authMiddleware = require('./middlewares/auth');
+
 const userDB = require('../mongo-db/schemas/userDB');
 
 const secretKey = process.env.JWT_SECRET;
@@ -48,10 +50,24 @@ router.post("/login", async(req, res) => {
         const token = jwt.sign({ id: user.id }, secretKey, { expiresIn: '7d' });
         await res.cookie('auth', token, { maxAge: 7 * 24 * 60 * 60 * 1000 , httpOnly: true });
         await res.status(201).send({ message: 'User logged in.' });
-        await db.close();
     } catch (e) {
         await res.status(500).send({ message: 'Internal server error.' });
     }
+});
+
+router.post("/logout", authMiddleware, async(req, res) => {
+    try {
+        await res.clearCookie('auth');
+        await res.status(201).send({ message: 'Logged out.' });
+    } catch (e) {
+        await res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
+router.get("/me", authMiddleware, async(req, res) => {
+    const userInformation = await userDB.findById(req.user.id);
+
+    await res.status(200).send({ userInformation });
 });
 
 module.exports = router;

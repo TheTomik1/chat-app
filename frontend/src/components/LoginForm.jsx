@@ -36,7 +36,7 @@ const LoginForm = ({ onClose }) => {
             const loginResponse = await axios.post('http://localhost:8080/api/login', { email, password });
 
             if (loginResponse.status === 201) {
-                window.location.href = "/chatr";
+                window.location.href = "/chat";
                 toastr.success('Login successful.');
                 onClose();
             }
