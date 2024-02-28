@@ -8,6 +8,7 @@ require('dotenv').config({ path: __dirname + '/.env' });
 const authMiddleware = require('./middlewares/auth');
 
 const userDB = require('../mongo-db/schemas/userDB');
+const chatDB = require('../mongo-db/schemas/chatsDB');
 
 const secretKey = process.env.JWT_SECRET;
 
@@ -26,6 +27,10 @@ router.post("/register", async(req, res) => {
 
         await res.status(201).send({ message: 'User registered.' });
     } catch (e) {
+        if (e.code === 11000) {
+            return res.status(400).send({ message: 'User already exists.' });
+        }
+
         await res.status(500).send({ message: 'Internal server error.' });
     }
 });
@@ -47,7 +52,7 @@ router.post("/login", async(req, res) => {
             return res.status(401).send({ message: 'Invalid password.' });
         }
 
-        const token = jwt.sign({ id: user.id }, secretKey, { expiresIn: '7d' });
+        const token = jwt.sign({ id: user.userName }, secretKey, { expiresIn: '7d' });
         await res.cookie('auth', token, { maxAge: 7 * 24 * 60 * 60 * 1000 , httpOnly: true });
         await res.status(201).send({ message: 'User logged in.' });
     } catch (e) {
@@ -65,9 +70,71 @@ router.post("/logout", authMiddleware, async(req, res) => {
 });
 
 router.get("/me", authMiddleware, async(req, res) => {
-    const userInformation = await userDB.findById(req.user.id);
+    const userInformation = await userDB.findOne({ userName: req.user.id }, { userName: 1, email: 1, _id: 0 });
 
     await res.status(200).send({ userInformation });
+});
+
+router.get("/list-users", authMiddleware, async(req, res) => {
+    const users = await userDB.find({}, { userName: 1, _id: 0 });
+
+    await res.status(200).send({ users });
+});
+
+router.get("/user-details", authMiddleware, async(req, res) => {
+    const { userName } = req.query;
+
+    const user = await userDB.findOne({ userName }, { userName: 1, email: 1, _id: 0 });
+
+    if (!user) {
+        return res.status(404).send({ message: 'User not found.' });
+    }
+
+    await res.status(200).send({ user });
+});
+
+router.get("/chat-history", authMiddleware, async(req, res) => {
+    const { participants } = req.query;
+
+    const chatHistory = await chatDB.findOne({ participants: { $all: participants } });
+
+    if (!chatHistory) {
+        return res.status(404).send({ message: 'Chat history not found.' });
+    }
+
+    await res.status(200).send({ chatHistory });
+});
+
+router.get("/previous-chats", authMiddleware, async(req, res) => {
+    const previousChats = await chatDB.find({ participants: req.user.id });
+
+    if (!previousChats) {
+        return res.status(404).send({ message: 'Previous chats not found.' });
+    }
+
+    await res.status(200).send({ previousChats });
+});
+
+router.post('/send-message', authMiddleware, async (req, res) => {
+    try {
+        const {message, sender, participants } = req.body;
+
+        if ( !message || !sender || !participants) {
+            return res.status(400).json({ message: 'Invalid body' });
+        }
+
+        const chatExists = await chatDB.findOne({ participants: { $all: participants } });
+        if (chatExists) {
+            await chatDB.updateOne({ participants: { $all: participants } }, { $push: { messages: { sender: sender, content: message, attachments: [] } } });
+            return res.status(201).json({ message: 'Message sent' });
+        } else {
+            await chatDB.create({ participants, messages: [{ sender: sender, content: message, attachments: [] }] });
+            return res.status(201).json({ message: 'Message sent' });
+        }
+    } catch (error) {
+        console.error('Error sending message:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
 });
 
 module.exports = router;

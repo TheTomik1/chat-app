@@ -5,12 +5,14 @@ const AuthContext = createContext(undefined);
 
 export const AuthProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [loggedInUser, setLoggedInUser] = useState({});
 
     useEffect(() => {
         async function checkIfLoggedIn() {
             try {
-                const meResponse = await axios.get("http://localhost:8080/api/me");
+                const meResponse = await axios.get("me");
                 setIsLoggedIn(meResponse.status === 200);
+                setLoggedInUser(meResponse.data.userInformation);
             } catch (error) {
                 setIsLoggedIn(false);
             }
@@ -20,7 +22,7 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ isLoggedIn }}>
+        <AuthContext.Provider value={{ isLoggedIn, loggedInUser }}>
             {children}
         </AuthContext.Provider>
     );

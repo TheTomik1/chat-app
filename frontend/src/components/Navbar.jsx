@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import toastr from 'toastr';
@@ -6,30 +6,17 @@ import toastr from 'toastr';
 import RegistrationForm from "./RegistrationForm";
 import LoginForm from "./LoginForm";
 
+import { useAuth } from "../context/Auth";
+
 const Navbar = () => {
+    const { isLoggedIn } = useAuth();
+
     const [showRegistration, setShowRegistration] = useState(false);
     const [showLogin, setShowLogin] = useState(false);
-
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     const [navbarOpen, setNavbarOpen] = useState(false);
 
     const navigate = useNavigate();
-
-    useEffect(() => {
-        async function checkAuthStatus() {
-            try {
-                const meResponse = await axios.get("http://localhost:8080/api/me");
-                if (meResponse.status === 200) {
-                    setIsLoggedIn(true);
-                }
-            } catch (error) {
-                setIsLoggedIn(false);
-            }
-        }
-
-        checkAuthStatus();
-    }, []);
 
     const handleLogout = async () => {
         try {
