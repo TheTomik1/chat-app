@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import toastr from "toastr";
+import {toast} from "react-toastify";
 
 import { MdVisibility, MdVisibilityOff } from "react-icons/md";
 
@@ -37,7 +37,7 @@ const LoginForm = ({ onClose }) => {
 
             if (loginResponse.status === 201) {
                 window.location.href = "/chat";
-                toastr.success('Login successful.');
+                toast("Logged in successfully.", { type: "success" });
                 onClose();
             }
         } catch (error) {

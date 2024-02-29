@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import toastr from 'toastr';
+import { toast } from "react-toastify";
 
 import { MdVisibility, MdVisibilityOff } from "react-icons/md";
 
@@ -38,7 +38,7 @@ const RegistrationForm = ({ onClose }) => {
             const registerResponse = await axios.post('http://localhost:8080/api/register', { userName, email, password });
 
             if (registerResponse.status === 201) {
-                toastr.success('Registration successful. You can now login.');
+                toast("Registered successfully. You can now log in.", { type: "success" });
                 onClose();
             }
         } catch (error) {

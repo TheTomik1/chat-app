@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { format, isToday, isYesterday, parseISO } from "date-fns";
 import axios from "axios";
 import socketIOClient from "socket.io-client";
+import { toast } from "react-toastify";
 
 import { FaEdit, FaTrash, FaGrinBeam } from "react-icons/fa";
 
@@ -74,11 +75,13 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                         timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
                         chatId: currentChat._id,
                     });
+
+                    toast("Message sent.", { type: "success" });
                     setCurrentChatNewMessage("");
                 }
             }
         } catch (e) {
-            console.error(e);
+            toast("Failed to send message.", { type: "error" });
         }
     }
 
@@ -102,11 +105,13 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                         timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
                         chatId: currentChat._id,
                     });
+
+                    toast("Message edited.", { type: "success" })
                     setCurrentChatEditMessage(null);
                 }
             }
         } catch (e) {
-            console.error(e);
+            toast("Failed to edit message.", { type: "error" });
         }
     }
 
@@ -122,10 +127,11 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
 
                 if (deleteMessageResponse.status === 201) {
                     socket.emit("delete-message", messageId, currentChat._id);
+                    toast("Message deleted.", { type: "info" });
                 }
             }
         } catch (e) {
-            console.error(e);
+            toast("Failed to delete message.", { type: "error" });
         }
     }
 

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/Auth';
-import toastr from "toastr";
 
 const LoadingIndicator = () => (
     <div className="bg-zinc-900 min-h-screen p-4 flex justify-center space-x-2">

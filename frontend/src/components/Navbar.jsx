@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
-import toastr from 'toastr';
+import { toast } from "react-toastify";
 
 import RegistrationForm from "./RegistrationForm";
 import LoginForm from "./LoginForm";
@@ -23,7 +23,7 @@ const Navbar = () => {
             await axios.post("http://localhost:8080/api/logout", null);
             navigate(0);
         } catch (error) {
-            toastr.error("Logout failed. Try again later.");
+            toast("Error logging out. Try again later.", { type: "error" });
         }
     };
 

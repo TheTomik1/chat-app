@@ -3,7 +3,8 @@ import { Route, Routes, useLocation } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import { format } from "date-fns";
 import axios from "axios";
-import toastr from "toastr";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import {HiMoon, HiSun} from "react-icons/hi";
 
@@ -66,6 +67,8 @@ function App() {
     return (
         <>
             <div className={isDarkMode ? 'dark' : ''}>
+                <ToastContainer toastClassName={isDarkMode ? "bg-zinc-600 text-white" : ""} />
+
                 <AuthProvider>
                     <Navbar/>
 
