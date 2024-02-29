@@ -14,13 +14,36 @@ const secretKey = process.env.JWT_SECRET;
 
 router.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
+router.post("/send-message", authMiddleware, async(req, res) => {
+    try {
+        const { participants, message } = req.body;
+
+        if (!participants || !message) {
+            return res.status(400).send({ message: 'Invalid body.' });
+        }
+
+        const findChat = await chatDB.findOne({ participants });
+        if (!findChat) {
+            await chatDB.create({ participants });
+        }
+
+        const chat = await chatDB.findOne({ participants });
+        await chatDB.updateOne({ _id: chat._id }, { $push: { messages: { sender: req.user.id, content: message } } });
+
+        await res.status(201).send({ message: 'Message sent.' });
+    } catch (e) {
+        console.error(e);
+        await res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
 router.post("/register", async(req, res) => {
     try {
         const { userName, email, password } = req.body;
         if (!userName || !email || !password) {
             return res.status(400).send({ message: 'Invalid body.' });
         }
-        
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
         await userDB.create({ userName, email, hashedPassword });
@@ -105,36 +128,10 @@ router.get("/chat-history", authMiddleware, async(req, res) => {
     await res.status(200).send({ chatHistory });
 });
 
-router.get("/previous-chats", authMiddleware, async(req, res) => {
-    const previousChats = await chatDB.find({ participants: req.user.id });
+router.get("/chats", authMiddleware, async(req, res) => {
+    const chats = await chatDB.find({ participants: req.user.id });
 
-    if (!previousChats) {
-        return res.status(404).send({ message: 'Previous chats not found.' });
-    }
-
-    await res.status(200).send({ previousChats });
-});
-
-router.post('/send-message', authMiddleware, async (req, res) => {
-    try {
-        const {message, sender, participants } = req.body;
-
-        if ( !message || !sender || !participants) {
-            return res.status(400).json({ message: 'Invalid body' });
-        }
-
-        const chatExists = await chatDB.findOne({ participants: { $all: participants } });
-        if (chatExists) {
-            await chatDB.updateOne({ participants: { $all: participants } }, { $push: { messages: { sender: sender, content: message, attachments: [] } } });
-            return res.status(201).json({ message: 'Message sent' });
-        } else {
-            await chatDB.create({ participants, messages: [{ sender: sender, content: message, attachments: [] }] });
-            return res.status(201).json({ message: 'Message sent' });
-        }
-    } catch (error) {
-        console.error('Error sending message:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+    await res.status(200).send({ chats });
 });
 
 module.exports = router;

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import io from 'socket.io-client';
 import axios from "axios";
 
+import ListChatMessages from "../components/ListChatMessages";
+
 import {useAuth} from "../context/Auth";
 
 const Chat = () => {
@@ -13,9 +15,6 @@ const Chat = () => {
     const [previousChats, setPreviousChats] = useState([]);
 
     const [currentChat, setCurrentChat] = useState({});
-    const [currentChatHistory, setCurrentChatHistory] = useState([]);
-    const [sessionMessages, setSessionMessages] = useState([]);
-    const [currentChatNewMessage, setCurrentChatNewMessage] = useState("");
 
     const [userDetails, setUserDetails] = useState({});
 
@@ -43,20 +42,6 @@ const Chat = () => {
         }
     }
 
-    async function fetchChatHistory() {
-        try {
-            const response = await axios.get('chat-history', {
-                params: { participants: currentChat.participants }
-            });
-
-            if (response.status === 200) {
-                setCurrentChatHistory(response.data.chatHistory);
-            }
-        } catch (e) {
-            // No chat history found.
-        }
-    }
-
     async function userDetail(userName) {
         try {
             const response = await axios.get(`user-details?userName=${userName}`);
@@ -69,30 +54,10 @@ const Chat = () => {
         }
     }
 
-    async function deleteChat() {
-        try {
-            const deleteChatResponse = await axios.post('delete-chat', {
-                participants: currentChat.participants
-            });
-
-            if (deleteChatResponse.status === 201) {
-                setCurrentChat({});
-            }
-        } catch (e) {
-        }
-    }
-
     useEffect(() => {
         fetchUsers();
         fetchPreviousChats();
     }, []);
-
-    useEffect(() => {
-        if (Object.keys(currentChat).length > 0) {
-            fetchChatHistory();
-        }
-    }, [currentChat]);
-
 
     return (
         <div className="bg-zinc-200 dark:bg-zinc-900 min-h-screen p-4">
@@ -154,30 +119,12 @@ const Chat = () => {
                 {Object.keys(currentChat).length > 0 ? (
                     <>
                         <h2 className="text-4xl text-gray-800 dark:text-white font-semibold mb-4">{currentChat.participants.length > 2 ? "Group chat" : `Chat with ${currentChat.participants[0]}`}</h2>
-                        <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md">
-                            <div className="space-y-4">
-                                // The chat will be here. Live and history.
-                            </div>
-                            <form className="mt-4" onSubmit={null}>
-                                <input
-                                    className="w-full p-4 h-12 bg-zinc-200 dark:bg-zinc-900 text-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Type your message here..."
-                                    value={currentChatNewMessage}
-                                    onChange={e => setCurrentChatNewMessage(e.target.value)}
-                                />
-                                <div className="space-x-4">
-                                    <button
-                                        className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-blue-600 transition-transform"
-                                        type="submit">
-                                        Send
-                                    </button>
-                                    <button
-                                        className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-red-600 transition-transform"
-                                        onClick={() => setCurrentChat({})}>Close Chat
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                        {currentChat.participants.length > 2 && (
+                            <>
+                                <p className="text-gray-600 dark:text-gray-400 text-lg">Participants: {currentChat.participants.filter(user => user !== loggedInUser.userName).join(', ')}</p>
+                            </>
+                        )}
+                        <ListChatMessages currentChat={currentChat} setCurrentChat={setCurrentChat} />
                     </>
                 ) : (
                     <p className="text-gray-800 dark:text-white text-xl">Select a chat to start chatting.</p>

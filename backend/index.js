@@ -8,25 +8,37 @@ const debug = require('debug')('chat-app-api');
 const { Server } = require('socket.io');
 const http = require('http');
 
-require("./mongo-db/connection.js")
+require("./mongo-db/connection.js");
 
 const endpoints = require("./api/endpoints");
 
 const calendarApi = express();
 
+const calendarApiServer = http.createServer(calendarApi);
+const io = new Server(calendarApiServer, { cors: { origin: 'http://localhost:3000', credentials: true } });
+
+calendarApi.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
 calendarApi.use(express.json());
 calendarApi.use(cookieParser());
 calendarApi.use(morgan('combined'));
 calendarApi.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+
 calendarApi.use("/api", endpoints);
 
-const calendarApiServer = http.createServer(calendarApi);
-const io = new Server(calendarApiServer, { cors: { origin: 'http://localhost:3000', credentials: true } });
+io.on("connection", (socket) => {
+  console.log("A user connected");
 
-io.on('connection', (socket) => {
-  debug('A user connected.');
-  socket.on('disconnect', () => {
-    debug('A user disconnected.');
+  socket.on("join-chat", (chatId) => {
+    console.log(`User joined chat ${chatId}`);
+    socket.join(chatId);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("A user disconnected");
   });
 });
 

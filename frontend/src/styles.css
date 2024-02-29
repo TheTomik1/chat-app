@@ -15,3 +15,7 @@
 ::-webkit-scrollbar-thumb:hover {
     background: #808080;
 }
+
+.no-select {
+    user-select: none;
+}
