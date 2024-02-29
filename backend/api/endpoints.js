@@ -14,7 +14,7 @@ const secretKey = process.env.JWT_SECRET;
 
 router.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
-router.post("/send-message", authMiddleware, async(req, res) => {
+router.post("/send-message", authMiddleware, async (req, res) => {
     try {
         const { participants, message } = req.body;
 
@@ -22,12 +22,13 @@ router.post("/send-message", authMiddleware, async(req, res) => {
             return res.status(400).send({ message: 'Invalid body.' });
         }
 
-        const findChat = await chatDB.findOne({ participants });
-        if (!findChat) {
-            await chatDB.create({ participants });
+        let chat = await chatDB.findOne({ participants: { $all: participants } });
+
+        if (!chat) {
+            console.log('Creating new chat');
+            chat = await chatDB.create({ participants, messages: [{ sender: req.user.id, content: message }] });
         }
 
-        const chat = await chatDB.findOne({ participants });
         await chatDB.updateOne({ _id: chat._id }, { $push: { messages: { sender: req.user.id, content: message } } });
 
         req.io.to(chat._id).emit('new-message', {
@@ -36,9 +37,10 @@ router.post("/send-message", authMiddleware, async(req, res) => {
             timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
         });
 
-        await res.status(201).send({ message: 'Message sent.' });
+        return res.status(201).send({ message: 'Message sent.' });
     } catch (e) {
-        await res.status(500).send({ message: 'Internal server error.' });
+        console.error(e);
+        return res.status(500).send({ message: 'Internal server error.' });
     }
 });
 
@@ -66,7 +68,6 @@ router.post("/edit-message", authMiddleware, async(req, res) => {
 
         await res.status(201).send({ message: 'Message edited.' });
     } catch (e) {
-        console.log(e);
         await res.status(500).send({ message: 'Internal server error.' });
     }
 });
@@ -196,6 +197,31 @@ router.get("/chats", authMiddleware, async(req, res) => {
     const chats = await chatDB.find({ participants: req.user.id });
 
     await res.status(200).send({ chats });
+});
+
+router.post("/update-user", authMiddleware, async(req, res) => {
+    try {
+        const { userName, email, password } = req.body;
+        if (!userName || !email) {
+            return res.status(400).send({ message: 'Invalid body.' });
+        }
+
+        if (!password) {
+            await userDB.updateOne({ userName: req.user.id }, { userName, email });
+            return res.status(201).send({ message: 'User updated.' });
+        } else {
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            await userDB.updateOne({ userName: req.user.id }, { userName, email, hashedPassword });
+            await res.status(201).send({ message: 'User updated.' });
+        }
+    } catch (e) {
+        if (e.code === 11000) {
+            return res.status(400).send({ message: 'User already exists.' });
+        }
+
+        await res.status(500).send({ message: 'Internal server error.' });
+    }
 });
 
 module.exports = router;
