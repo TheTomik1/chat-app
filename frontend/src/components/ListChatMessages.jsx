@@ -27,7 +27,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     const [currentChatHistory, setCurrentChatHistory] = useState([]);
     const [currentChatNewMessage, setCurrentChatNewMessage] = useState("");
     const [currentChatEditMessage, setCurrentChatEditMessage] = useState(null);
-    const [displayedMessages, setDisplayedMessages] = useState(10);
+    const [displayedMessages, setDisplayedMessages] = useState(20);
 
     async function fetchChatHistory() {
         try {
@@ -96,7 +96,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             newSocket.emit("authenticate", { allowedChats, userName: loggedInUser.userName });
 
             newSocket.on('new-message', (newMessage) => {
-                setCurrentChatHistory(prevHistory => [...prevHistory, newMessage]);
+                setCurrentChatHistory(prevHistory => [...prevHistory, newMessage]); // Add new message at the end
             });
 
             setSocket(newSocket);
@@ -104,12 +104,12 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     }, [allowedChats]);
 
     const loadMoreMessages = () => {
-        setDisplayedMessages(displayedMessages + 30);
+        setDisplayedMessages(displayedMessages + 20);
     };
 
     return (
         <div className="w-full bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-4">
-            {currentChatHistory.slice(0, displayedMessages).map((message) => (
+            {currentChatHistory.slice(Math.max(currentChatHistory.length - displayedMessages, 0)).map((message) => (
                 <div key={message._id} className="bg-zinc-200 dark:bg-zinc-700 rounded-lg shadow-lg p-4 hover:cursor-pointer mb-4">
                     <div className="flex items-center space-x-4">
                         <img src="https://robohash.org/noprofilepic.png" alt="UserProfilePicture" className="w-12 h-12 rounded-full"/>
