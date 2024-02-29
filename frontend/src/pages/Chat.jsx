@@ -51,6 +51,10 @@ const Chat = () => {
         }
     }
 
+    function findSecondParticipant(participants) {
+        return participants.find(participant => participant !== loggedInUser.userName);
+    }
+
     useEffect(() => {
         fetchUsers();
         fetchChats();
@@ -64,7 +68,7 @@ const Chat = () => {
                     <div className="space-y-4">
                         {previousChats.map((chat, index) => (
                             <div key={index} className="bg-white dark:bg-zinc-800 p-6 w-1/2 rounded-lg shadow-md hover:cursor-pointer hover:scale-105 transition-transform">
-                                <p className="text-gray-800 text-2xl dark:text-white font-semibold">{chat.participants.length > 2 ? "Group chat" : `Chat with ${chat.participants[0]}`}</p>
+                                <p className="text-gray-800 text-2xl dark:text-white font-semibold">{chat.participants.length > 2 ? "Group chat" : `Chat with ${findSecondParticipant(chat.participants)}`}</p>
                                 {chat.participants.length > 2 && (
                                     <p className="text-gray-600 dark:text-gray-400 text-lg">Participants: {chat.participants.filter(user => user !== loggedInUser.userName).join(', ')}</p>
                                 )}
