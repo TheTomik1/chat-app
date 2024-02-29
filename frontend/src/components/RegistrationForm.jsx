@@ -94,24 +94,24 @@ const RegistrationForm = ({ onClose }) => {
 
     return (
         <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-gray-900 bg-opacity-50 z-50">
-            <div className="text-center bg-zinc-800 p-8 rounded-lg shadow-lg w-96">
-                <h2 className="text-4xl text-white font-semibold mb-4">Registration</h2>
+            <div className="text-center bg-white dark:bg-zinc-800 p-8 rounded-lg shadow-lg w-96">
+                <h2 className="text-4xl text-black dark:text-white font-semibold mb-4">Registration</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label htmlFor="username" className="text-left text-white text-xl mb-1 block">Username</label>
-                        <input type="text" placeholder="Create your new username here." value={userName} onChange={handleUsernameChange} className="w-full px-4 py-2 rounded border border-zinc-500 bg-zinc-600 text-white focus:outline-none"/>
+                        <label htmlFor="username" className="text-left text-black dark:text-white text-xl mb-1 block">Username</label>
+                        <input type="text" placeholder="Create your new username here." value={userName} onChange={handleUsernameChange} className="w-full px-4 py-2 rounded border border-gray-400 dark:border-zinc-500 bg-gray-200 dark:bg-zinc-600 text-black dark:text-white focus:outline-none"/>
                         {userName.length < 4 && userName.length !== 0 && <p className="text-red-500 text-sm mt-2">Username must be at least 4 characters long.</p>}
                     </div>
                     <div className="mb-4">
-                        <label htmlFor="email" className="text-left text-white text-xl mb-1 block">Email</label>
-                        <input type="email" placeholder="Your login email." value={email} onChange={handleEmailChange} className="w-full px-4 py-2 rounded border border-zinc-500 bg-zinc-600 text-white focus:outline-none"/>
+                        <label htmlFor="email" className="text-left text-black dark:text-white text-xl mb-1 block">Email</label>
+                        <input type="email" placeholder="Your login email." value={email} onChange={handleEmailChange} className="w-full px-4 py-2 rounded border border-gray-400 dark:border-zinc-500 bg-gray-200 dark:bg-zinc-600 text-black dark:text-white focus:outline-none"/>
                         {!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length !== 0 && <p className="text-red-500 text-sm mt-2">Invalid email address.</p>}
                     </div>
                     <div className="mb-2 relative">
-                        <label htmlFor="password" className="text-left text-white text-xl mb-1 block">Password</label>
-                        <input type={showPassword ? "text" : "password"} placeholder="Your login password." value={password} onChange={handlePasswordChange} className="w-full px-4 py-2 rounded border border-zinc-500 bg-zinc-600 text-white focus:outline-none"/>
+                        <label htmlFor="password" className="text-left text-black dark:text-white text-xl mb-1 block">Password</label>
+                        <input type={showPassword ? "text" : "password"} placeholder="Your login password." value={password} onChange={handlePasswordChange} className="w-full px-4 py-2 rounded border border-gray-400 dark:border-zinc-500 bg-gray-200 dark:bg-zinc-600 text-black dark:text-white focus:outline-none"/>
                         <button type="button" className="absolute mt-3 right-0 mr-3" onClick={handleTogglePassword}>
-                            {showPassword ? <MdVisibilityOff className="text-white text-xl" /> : <MdVisibility className="text-white text-xl" />}
+                            {showPassword ? <MdVisibilityOff className="text-black dark:text-white text-xl" /> : <MdVisibility className="text-black dark:text-white text-xl" />}
                         </button>
                         <div className="flex items-center justify-between mt-2">
                             <div className={`flex-1 h-1 rounded ${passwordStrength < 1 ? "bg-gray-700" : "bg-red-500"} mr-2`}></div>

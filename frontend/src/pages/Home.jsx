@@ -25,19 +25,17 @@ const Home = () => {
     }
 
     return (
-        <div className="text-center bg-zinc-900 min-h-screen p-4">
-            <h1 className="text-5xl text-white font-bold pt-24">Chat with your friends now!</h1>
-            <p className="text-white text-xl mt-2">Create an account and start chatting today!</p>
-            <p onClick={handleTryOutOpen}
-                className="bg-blue-700 hover:bg-blue-600 w-64 text-white text-xl font-bold py-3 rounded inline-block mt-5 hover:cursor-pointer">Try
-                me out today!</p>
+        <div className="text-center min-h-screen p-4 bg-gray-100 dark:bg-zinc-900">
+            <h1 className="text-5xl font-bold pt-24 text-gray-900 dark:text-white">Chat with your friends now!</h1>
+            <p className="text-xl mt-2 text-gray-700 dark:text-gray-300">Create an account and start chatting today!</p>
+            <button onClick={handleTryOutOpen}
+                    className="w-64 py-3 mt-5 text-xl font-bold rounded bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-700 dark:hover:bg-blue-600 hover:cursor-pointer">Try me out today!</button>
 
-            <h3 className="mt-2 text-sm text-white">Already using the calendar? <p onClick={handleLoginOpen}
-                className="text-yellow-500 hover:cursor-pointer">Login
-                now!</p></h3>
+            <h3 className="mt-2 text-sm text-black dark:text-white">Already using the application? <span onClick={handleLoginOpen}
+                                                                           className="text-yellow-500 hover:cursor-pointer dark:text-yellow-400">Login now!</span></h3>
 
-            <p className="text-white text-center mt-12 mb-4">Made with ❤️ by <Link to={"https://github.com/TheTomik1"}
-                className="text-green-500">TheTomik</Link>
+            <p className="text-center mt-12 mb-4 text-gray-700 dark:text-gray-300">Made with ❤️ by <a href="https://github.com/TheTomik1"
+                                                                                                      className="text-green-500 dark:text-green-300">TheTomik</a>
             </p>
             {showRegistration && <RegistrationForm onClose={handleRegistrationClose} />}
             {showLogin && <LoginForm onClose={handleLoginClose} />}

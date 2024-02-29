@@ -86,7 +86,7 @@ function App() {
                     {isDarkMode ? <HiSun size={24} color="#FBBF24"/> : <HiMoon size={24} color="#FBBF24"/>}
                 </div>
 
-                <footer className="bg-zinc-900 text-white text-center p-4">
+                <footer className="bg-zinc-300 text-black dark:bg-zinc-900 dark:text-white text-center p-4">
                     <p>&copy; {format(new Date(), "yyyy")} - Chat App</p>
                 </footer>
             </div>

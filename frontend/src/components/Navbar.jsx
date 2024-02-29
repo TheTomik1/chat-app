@@ -48,7 +48,7 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="bg-zinc-800">
+        <nav className="bg-zinc-300 dark:bg-zinc-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     <div className="flex-shrink-0">
@@ -61,7 +61,7 @@ const Navbar = () => {
                         </Link>
                     </div>
                     <div className="md:hidden">
-                        <button onClick={toggleNavbar} className="text-white hover:text-white focus:outline-none">
+                        <button onClick={toggleNavbar} className="text-black dark:text-white focus:outline-none">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                  stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -71,13 +71,12 @@ const Navbar = () => {
                     </div>
                     <div className="hidden md:block">
                         <div className="ml-10 flex items-baseline space-x-4">
-                            <Link to="/chat"
-                               className="text-white font-cubano hover:bg-zinc-700 px-3 py-2 rounded-md text-2xl font-medium">
+                            <Link to="/chat" className="text-black dark:text-white hover:bg-zinc-400 hover:dark:bg-zinc-700 px-3 py-2 rounded-md text-2xl font-medium">
                                 Chat
                             </Link>
                             {isLoggedIn ? (
                                 <div className="flex space-x-4">
-                                    <p onClick={handleLogout} className="text-white font-cubano hover:bg-zinc-700 px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
+                                    <p onClick={handleLogout} className="text-black dark:text-white hover:bg-zinc-400 hover:dark:bg-zinc-700 px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
                                         Logout
                                     </p>
                                     <Link to="/profile">
@@ -87,10 +86,10 @@ const Navbar = () => {
                             ) : (
                                 <div className="flex space-x-4">
                                     <p onClick={handleLoginOpen}
-                                       className="text-white font-cubano hover:bg-zinc-700 px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
+                                       className="text-black dark:text-white hover:bg-zinc-400 hover:dark:bg-zinc-700 px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
                                         Login
                                     </p>
-                                    <p onClick={handleRegistrationOpen} className="text-white font-cubano hover:bg-zinc-700 px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
+                                    <p onClick={handleRegistrationOpen} className="text-black dark:text-white hover:bg-zinc-400 hover:dark:bg-zinc-700 px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
                                         Register
                                     </p>
                                 </div>
@@ -105,24 +104,24 @@ const Navbar = () => {
                 transition: 'max-height 0.5s ease-in-out'
             }}>
                 <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                    <Link to="/chat" className="text-white font-cubano hover:bg-zinc-700 block px-3 py-2 rounded-md text-2xl font-medium">
+                    <Link to="/chat" className="text-black dark:text-white hover:bg-zinc-400 hover:dark:bg-zinc-700 block px-3 py-2 rounded-md text-2xl font-medium">
                         My calendar
                     </Link>
                     {isLoggedIn ? (
                         <>
-                            <Link to="/profile" className="text-white font-cubano hover:bg-zinc-700 block px-3 py-2 rounded-md text-2xl font-medium">
+                            <Link to="/profile" className="text-black dark:text-white hover:bg-zinc-400 hover:dark:bg-zinc-700 block px-3 py-2 rounded-md text-2xl font-medium">
                                 Profile
                             </Link>
-                            <p onClick={handleLogout} className="text-white font-cubano hover:bg-zinc-700 block px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
+                            <p onClick={handleLogout} className="text-black dark:text-white hover:bg-zinc-400 hover:dark:bg-zinc-700 block px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
                                 Logout
                             </p>
                         </>
                     ) : (
                         <>
-                            <p onClick={handleLoginOpen} className="text-white font-cubano hover:bg-zinc-700 block px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
+                            <p onClick={handleLoginOpen} className="text-black dark:text-white hover:bg-zinc-400 hover:dark:bg-zinc-700 block px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
                                 Login
                             </p>
-                            <p onClick={handleRegistrationOpen} className="text-white font-cubano hover:bg-zinc-700 block px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
+                            <p onClick={handleRegistrationOpen} className="text-black dark:text-white hover:bg-zinc-400 hover:dark:bg-zinc-700 block px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
                                 Register
                             </p>
                         </>
