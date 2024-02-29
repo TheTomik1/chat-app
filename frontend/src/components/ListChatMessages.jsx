@@ -24,10 +24,10 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     const [socket, setSocket] = useState(null);
 
     const [allowedChats, setAllowedChats] = useState([]);
-
     const [currentChatHistory, setCurrentChatHistory] = useState([]);
     const [currentChatNewMessage, setCurrentChatNewMessage] = useState("");
     const [currentChatEditMessage, setCurrentChatEditMessage] = useState(null);
+    const [displayedMessages, setDisplayedMessages] = useState(10);
 
     async function fetchChatHistory() {
         try {
@@ -103,9 +103,13 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         }
     }, [allowedChats]);
 
+    const loadMoreMessages = () => {
+        setDisplayedMessages(displayedMessages + 30);
+    };
+
     return (
         <div className="w-full bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-4">
-            {currentChatHistory.map((message) => (
+            {currentChatHistory.slice(0, displayedMessages).map((message) => (
                 <div key={message._id} className="bg-zinc-200 dark:bg-zinc-700 rounded-lg shadow-lg p-4 hover:cursor-pointer mb-4">
                     <div className="flex items-center space-x-4">
                         <img src="https://robohash.org/noprofilepic.png" alt="UserProfilePicture" className="w-12 h-12 rounded-full"/>
@@ -130,6 +134,14 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                     </div>
                 </div>
             ))}
+            {currentChatHistory.length > displayedMessages && (
+                <button
+                    className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-blue-600 transition-transform"
+                    onClick={loadMoreMessages}
+                >
+                    Load More
+                </button>
+            )}
             <form className="mt-4" onSubmit={sendMessage}>
                 <input
                     className="w-full p-4 h-12 bg-zinc-200 dark:bg-zinc-900 text-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
