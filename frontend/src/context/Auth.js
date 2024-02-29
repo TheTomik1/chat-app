@@ -6,6 +6,7 @@ const AuthContext = createContext(undefined);
 export const AuthProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [loggedInUser, setLoggedInUser] = useState({});
+    const [loggedInUserProfilePicture, setLoggedInUserProfilePicture] = useState("");
 
     useEffect(() => {
         async function checkIfLoggedIn() {
@@ -18,11 +19,22 @@ export const AuthProvider = ({ children }) => {
             }
         }
 
+        async function fetchUserProfilePicture() {
+            try {
+                const response = await axios.get("me-profile-picture", { responseType: "blob" });
+                const url = URL.createObjectURL(response.data);
+                setLoggedInUserProfilePicture(url);
+            } catch (error) {
+                setLoggedInUserProfilePicture("https://robohash.org/noprofilepic.png");
+            }
+        }
+
         checkIfLoggedIn();
+        fetchUserProfilePicture();
     }, []);
 
     return (
-        <AuthContext.Provider value={{ isLoggedIn, loggedInUser }}>
+        <AuthContext.Provider value={{ isLoggedIn, loggedInUser, loggedInUserProfilePicture }}>
             {children}
         </AuthContext.Provider>
     );

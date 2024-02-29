@@ -5,8 +5,10 @@ import axios from "axios";
 import {useAuth} from "../context/Auth";
 import {useNavigate} from "react-router-dom";
 
+import {MdModeEditOutline} from "react-icons/md";
+
 const Profile = () => {
-    const { loggedInUser } = useAuth();
+    const { loggedInUser, loggedInUserProfilePicture } = useAuth();
     const navigate = useNavigate();
 
     const [userEmail, setUserEmail] = useState("");
@@ -106,7 +108,30 @@ const Profile = () => {
                 toast("Error updating user details.", { type: "error" });
             }
         }
+    }
 
+    async function updateProfilePicture(event) {
+        const targetFile = event.target.files[0];
+
+        const formData = new FormData();
+        formData.append("file", targetFile);
+
+        try {
+            const uploadFileResponse = await axios.post("upload-profile-picture", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            });
+
+            if (uploadFileResponse.status === 201) {
+                toast("Profile picture updated successfully.", { type: "success" });
+                await new Promise(r => setTimeout(r, 5000));
+                navigate("/chat");
+            }
+        } catch (error) {
+            console.error(error);
+            toast("Error updating profile picture.", { type: "error" });
+        }
     }
 
     useEffect(() => {
@@ -116,24 +141,52 @@ const Profile = () => {
     return (
         <div className="text-center bg-zinc-200 dark:bg-zinc-900 min-h-screen p-4">
             <h1 className="text-4xl text-black dark:text-white font-semibold mb-4">Profile</h1>
-            <p className="text-black dark:text-white text-xl">This is the profile page. You can see your personal information here.</p>
+            <p className="text-black dark:text-white text-xl">This is the profile page. You can see your personal
+                information here.</p>
 
             <div className="flex justify-center">
                 <div className="mt-8 w-1/2 bg-zinc-500 dark:bg-zinc-700 p-4 rounded-md hover:cursor-pointer">
+                    <div className="flex justify-center mb-8">
+                        <div className="relative w-32 h-32 rounded-full border-4 border-white overflow-hidden group">
+                            <div className="w-32 h-32 overflow-hidden rounded-full">
+                                <img
+                                    src={loggedInUserProfilePicture}
+                                    alt="Profile picture."
+                                    className="w-full h-full object-cover select-none"
+                                />
+                            </div>
+                            <div
+                                className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300 bg-black bg-opacity-50 rounded-full">
+                                <label htmlFor="fileInput" className="cursor-pointer">
+                                    <MdModeEditOutline className="text-white text-2xl"/>
+                                </label>
+                                <input
+                                    type="file"
+                                    id="fileInput"
+                                    className="hidden"
+                                    accept={".png, .jpg, .jpeg"}
+                                    onChange={updateProfilePicture}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
                     <input type="text"
                            name="userName"
                            placeholder={"Your new username."}
                            value={userName}
                            onChange={(e) => handleInputChange(e)}
                            className="w-full p-2 rounded-md bg-zinc-400 dark:bg-zinc-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                    {userName.length < 4 && <p className="text-red-500 text-left">Username must be at least 4 characters long.</p>}
+                    {userName.length < 4 &&
+                        <p className="text-red-500 text-left">Username must be at least 4 characters long.</p>}
                     <input type="text"
-                            name="userEmail"
+                           name="userEmail"
                            placeholder={"Your new email."}
                            value={userEmail}
                            onChange={handleInputChange}
                            className="w-full p-2 mt-4 rounded-md bg-zinc-400 dark:bg-zinc-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                    {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail) === false && <p className="text-red-500 text-left">Invalid email address.</p>}
+                    {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail) === false &&
+                        <p className="text-red-500 text-left">Invalid email address.</p>}
                     <input type="password"
                            name="newPassword"
                            value={newPassword}

@@ -2,6 +2,9 @@ const router = require('express').Router();
 const { format } = require('date-fns');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
+const multer = require('multer');
+const fs = require('fs');
+const path = require("path");
 const jwt = require('jsonwebtoken');
 require('dotenv').config({ path: __dirname + '/.ENV' });
 
@@ -9,10 +12,21 @@ const authMiddleware = require('./middlewares/auth');
 
 const userDB = require('../mongo-db/schemas/userDB');
 const chatDB = require('../mongo-db/schemas/chatsDB');
+const profilePicturesDB = require('../mongo-db/schemas/profilePicturesDB');
 
 const secretKey = process.env.JWT_SECRET;
 
 router.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, 'profile-pictures'));
+    },
+    filename: function (req, file, cb) {
+        cb(null, `${req.user.id}-${file.originalname}`);
+}});
+
+const upload = multer({ storage });
 
 router.post("/register", async(req, res) => {
     try {
@@ -75,6 +89,20 @@ router.get("/me", authMiddleware, async(req, res) => {
     await res.status(200).send({ userInformation });
 });
 
+router.get("/me-profile-picture", authMiddleware, async(req, res) => {
+    const userId = req.user.id;
+
+    const userInformation = await profilePicturesDB.findOne({ userName: userId }, { imageName: 1, _id: 0 });
+
+    if (userInformation === null || !userInformation["imageName"]) {
+        return res.status(404).send({ message: 'No profile picture found.' });
+    }
+
+    const imagePath = path.join(__dirname, 'profile-pictures', userInformation["imageName"]);
+
+    return res.status(200).sendFile(imagePath);
+});
+
 router.get("/list-users", authMiddleware, async(req, res) => {
     const users = await userDB.find({}, { userName: 1, _id: 0 });
 
@@ -132,6 +160,37 @@ router.post("/update-user", authMiddleware, async(req, res) => {
             return res.status(400).send({ message: 'User already exists.' });
         }
 
+        await res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
+router.post("/upload-profile-picture", authMiddleware, async(req, res) => {
+    try {
+        upload.single('file')(req, res, async (err) => {
+            if (err instanceof multer.MulterError) {
+                return res.status(400).send({ message: 'Invalid file.' });
+            } else if (err) {
+                return res.status(500).send({ message: 'Internal server error.' });
+            }
+
+            if (!req.file) {
+                return res.status(400).send({ message: 'No file uploaded.' });
+            }
+
+            const findProfilePicture = await profilePicturesDB.findOne({ userName: req.user.id });
+
+            if (findProfilePicture !== null) {
+                const oldImagePath = path.join(__dirname, 'profile-pictures', findProfilePicture["imageName"]);
+                fs.unlinkSync(oldImagePath)
+            }
+
+            const fileName = `${req.user.id}-${req.file.originalname}`;
+            await profilePicturesDB.updateOne({ userName: req.user.id }, { imageName: fileName }, { upsert: true });
+
+            await res.status(201).send({ message: 'File uploaded.' });
+        });
+    } catch (e) {
+        console.error(e);
         await res.status(500).send({ message: 'Internal server error.' });
     }
 });

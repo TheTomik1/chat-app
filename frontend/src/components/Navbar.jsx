@@ -9,7 +9,7 @@ import LoginForm from "./LoginForm";
 import { useAuth } from "../context/Auth";
 
 const Navbar = () => {
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn, loggedInUserProfilePicture } = useAuth();
 
     const [showRegistration, setShowRegistration] = useState(false);
     const [showLogin, setShowLogin] = useState(false);
@@ -80,8 +80,8 @@ const Navbar = () => {
                                     <p onClick={handleLogout} className="text-white font-cubano hover:bg-zinc-700 px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
                                         Logout
                                     </p>
-                                    <Link to="/profile" className="text-white font-cubano hover:bg-zinc-700 px-3 py-2 rounded-md text-2xl font-medium select-none hover:cursor-pointer">
-                                        Profile
+                                    <Link to="/profile">
+                                        <img src={loggedInUserProfilePicture} alt={"Profile"} className="h-12 w-12 rounded-full select-none hover:cursor-pointer hover:scale-105 transition-transform"/>
                                     </Link>
                                 </div>
                             ) : (
