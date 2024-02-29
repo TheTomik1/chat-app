@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import io from 'socket.io-client';
 import axios from "axios";
 
 import ListChatMessages from "../components/ListChatMessages";
@@ -8,8 +7,6 @@ import {useAuth} from "../context/Auth";
 
 const Chat = () => {
     const { loggedInUser } = useAuth();
-
-    const [socket, setSocket] = useState(null);
 
     const [users, setUsers] = useState([]);
     const [previousChats, setPreviousChats] = useState([]);
@@ -20,22 +17,22 @@ const Chat = () => {
 
     async function fetchUsers() {
         try {
-            const response = await axios.get('list-users');
+            const listUsersResponse = await axios.get('list-users');
 
-            if (response.status === 200) {
-                setUsers(response.data.users);
+            if (listUsersResponse.status === 200) {
+                setUsers(listUsersResponse.data.users);
             }
         } catch (e) {
             // No users found.
         }
     }
 
-    async function fetchPreviousChats() {
+    async function fetchChats() {
         try {
-            const response = await axios.get('previous-chats');
+            const chatResponse = await axios.get('chats');
 
-            if (response.status === 200) {
-                setPreviousChats(response.data.previousChats);
+            if (chatResponse.status === 200) {
+                setPreviousChats(chatResponse.data.chats);
             }
         } catch (e) {
             // No previous chats found.
@@ -44,10 +41,10 @@ const Chat = () => {
 
     async function userDetail(userName) {
         try {
-            const response = await axios.get(`user-details?userName=${userName}`);
+            const userDetailsResponse = await axios.get(`user-details?userName=${userName}`);
 
-            if (response.status === 200) {
-                setUserDetails(response.data.user);
+            if (userDetailsResponse.status === 200) {
+                setUserDetails(userDetailsResponse.data.user);
             }
         } catch (e) {
             // No user found.
@@ -56,7 +53,7 @@ const Chat = () => {
 
     useEffect(() => {
         fetchUsers();
-        fetchPreviousChats();
+        fetchChats();
     }, []);
 
     return (

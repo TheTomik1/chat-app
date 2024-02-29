@@ -30,6 +30,12 @@ router.post("/send-message", authMiddleware, async(req, res) => {
         const chat = await chatDB.findOne({ participants });
         await chatDB.updateOne({ _id: chat._id }, { $push: { messages: { sender: req.user.id, content: message } } });
 
+        req.io.to(chat._id).emit('new-message', {
+            sender: req.user.id,
+            content: message,
+            timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
+        });
+
         await res.status(201).send({ message: 'Message sent.' });
     } catch (e) {
         console.error(e);
