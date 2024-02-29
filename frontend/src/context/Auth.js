@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 
         async function fetchUserProfilePicture() {
             try {
-                const response = await axios.get("me-profile-picture", { responseType: "blob" });
+                const response = await axios.get("profile-picture", { responseType: "blob" });
                 const url = URL.createObjectURL(response.data);
                 setLoggedInUserProfilePicture(url);
             } catch (error) {

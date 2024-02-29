@@ -89,16 +89,23 @@ router.get("/me", authMiddleware, async(req, res) => {
     await res.status(200).send({ userInformation });
 });
 
-router.get("/me-profile-picture", authMiddleware, async(req, res) => {
-    const userId = req.user.id;
+router.get("/profile-picture", authMiddleware, async (req, res) => {
+    let userId, userName;
+    if (req.query.userName) {
+        userName = req.query.userName;
+    } else {
+        userId = req.user.id;
+    }
 
-    const userInformation = await profilePicturesDB.findOne({ userName: userId }, { imageName: 1, _id: 0 });
+    const query = userName ? { userName } : { userName: userId };
 
-    if (userInformation === null || !userInformation["imageName"]) {
+    const userInformation = await profilePicturesDB.findOne(query, { imageName: 1, _id: 0 });
+
+    if (userInformation === null || !userInformation.imageName) {
         return res.status(404).send({ message: 'No profile picture found.' });
     }
 
-    const imagePath = path.join(__dirname, 'profile-pictures', userInformation["imageName"]);
+    const imagePath = path.join(__dirname, 'profile-pictures', userInformation.imageName);
 
     return res.status(200).sendFile(imagePath);
 });
@@ -206,7 +213,6 @@ router.post("/send-message", authMiddleware, async (req, res) => {
         let chat = await chatDB.findOne({ participants: { $all: participants } });
 
         if (!chat) {
-            console.log('Creating new chat');
             chat = await chatDB.create({ participants, messages: [{ sender: req.user.id, content: message }] });
         }
 

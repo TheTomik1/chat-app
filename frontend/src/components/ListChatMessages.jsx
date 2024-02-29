@@ -26,6 +26,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
 
     const [allowedChats, setAllowedChats] = useState([]);
     const [currentChatHistory, setCurrentChatHistory] = useState([]);
+    const [currentChatProfilePictures, setCurrentChatProfilePictures] = useState({});
     const [currentChatNewMessage, setCurrentChatNewMessage] = useState("");
     const [currentChatEditMessage, setCurrentChatEditMessage] = useState(null);
     const [displayedMessages, setDisplayedMessages] = useState(10);
@@ -53,6 +54,22 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             }
         } catch (e) {
             // No chats found.
+        }
+    }
+
+    async function fetchProfilePictures(senders) {
+        try {
+            for (const sender of senders) {
+                const response = await axios.get("profile-picture", {
+                    params: { userName: sender },
+                    responseType: "blob",
+                });
+
+                const url = URL.createObjectURL(response.data);
+                setCurrentChatProfilePictures(prevPictures => ({ ...prevPictures, [sender]: url }));
+            }
+        } catch (error) {
+            // No profile picture found.
         }
     }
 
@@ -139,13 +156,15 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         if (currentChat.participants) {
             fetchChatHistory();
             fetchAllowedChats();
+            fetchProfilePictures(currentChat.participants);
         }
     }, [currentChat.participants]);
 
     useEffect(() => {
-        if (allowedChats.length > 0) {
-            const newSocket = socketIOClient("http://localhost:8080");
+        const newSocket = socketIOClient("http://localhost:8080");
+        setSocket(newSocket)
 
+        if (allowedChats.length > 0) {
             newSocket.emit("authenticate", { allowedChats, userName: loggedInUser.userName });
 
             newSocket.on('new-message', (newMessage) => {
@@ -164,10 +183,8 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             newSocket.on('deleted-message', (deletedMessageId) => {
                 setCurrentChatHistory(prevHistory => prevHistory.filter(message => message._id !== deletedMessageId));
             });
-
-            setSocket(newSocket);
         }
-    }, [allowedChats]);
+    }, []);
 
     const loadMoreMessages = () => {
         setDisplayedMessages(displayedMessages + 20);
@@ -178,7 +195,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             {currentChatHistory.slice(Math.max(currentChatHistory.length - displayedMessages, 0)).map((message) => (
                 <div key={message._id} className="bg-zinc-200 dark:bg-zinc-700 rounded-lg shadow-lg p-4 hover:cursor-pointer mb-4">
                     <div className="flex items-center space-x-4">
-                        <img src="https://robohash.org/noprofilepic.png" alt="UserProfilePicture" className="w-12 h-12 rounded-full"/>
+                        <img src={currentChatProfilePictures[message.sender] || "https://robohash.org/noprofilepic.png"} alt="UserProfilePicture" className="w-12 h-12 rounded-full" />
                         <div>
                             <div className="flex flex-row space-x-4 items-center">
                                 <p className="font-bold text-black dark:text-white">{message.sender}</p>

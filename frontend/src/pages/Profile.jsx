@@ -146,7 +146,7 @@ const Profile = () => {
 
             <div className="flex justify-center">
                 <div className="mt-8 w-1/2 bg-zinc-500 dark:bg-zinc-700 p-4 rounded-md hover:cursor-pointer">
-                    <div className="flex justify-center mb-8">
+                    <div className="flex justify-center">
                         <div className="relative w-32 h-32 rounded-full border-4 border-white overflow-hidden group">
                             <div className="w-32 h-32 overflow-hidden rounded-full">
                                 <img
@@ -170,6 +170,7 @@ const Profile = () => {
                             </div>
                         </div>
                     </div>
+                    <p className="text-black dark:text-white text-sm mb-6">Recommended image size: 200x200px</p>
 
                     <input type="text"
                            name="userName"
