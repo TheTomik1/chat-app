@@ -42,6 +42,40 @@ router.post("/send-message", authMiddleware, async(req, res) => {
     }
 });
 
+router.post("/edit-message", authMiddleware, async(req, res) => {
+    try {
+        const { participants, message, messageId } = req.body;
+
+        if (!participants || !message || !messageId) {
+            return res.status(400).send({ message: 'Invalid body.' });
+        }
+
+        const chat = await chatDB.findOne({ participants });
+        const messageIndex = chat.messages.findIndex(msg => msg._id.toString() === messageId);
+        if (messageIndex === -1) {
+            return res.status(404).send({ message: 'Message not found.' });
+        }
+
+        await chatDB.updateOne({ _id: chat._id }, { $set: { [`messages.${messageIndex}.content`]: message, [`messages.${messageIndex}.edited`]: true } });
+
+        req.io.to(chat._id).emit('edited-message', {
+            messageId,
+            content: message,
+            timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
+        });
+
+        await res.status(201).send({ message: 'Message edited.' });
+    } catch (e) {
+        console.log(e);
+        await res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
+
+
+
+
+
 router.post("/register", async(req, res) => {
     try {
         const { userName, email, password } = req.body;

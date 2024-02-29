@@ -82,6 +82,34 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         }
     }
 
+    async function editMessage(e) {
+        e.preventDefault();
+
+        try {
+            if (socket) {
+                socket.emit("join-chat", currentChat._id);
+
+                const editMessageResponse = await axios.post("edit-message", {
+                    participants: currentChat.participants,
+                    message: currentChatEditMessage.content,
+                    messageId: currentChatEditMessage._id,
+                });
+
+                if (editMessageResponse.status === 201) {
+                    socket.emit("edit-message", {
+                        messageId: currentChatEditMessage._id,
+                        content: currentChatEditMessage.content,
+                        timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
+                        chatId: currentChat._id,
+                    });
+                    setCurrentChatEditMessage(null);
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
     useEffect(() => {
         if (currentChat.participants) {
             fetchChatHistory();
@@ -97,6 +125,15 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
 
             newSocket.on('new-message', (newMessage) => {
                 setCurrentChatHistory(prevHistory => [...prevHistory, newMessage]); // Add new message at the end
+            });
+
+            newSocket.on('edited-message', (editedMessage) => {
+                setCurrentChatHistory(prevHistory => prevHistory.map(message => {
+                    if (message._id === editedMessage.messageId) {
+                        return { ...message, content: editedMessage.content, timestamp: editedMessage.timestamp };
+                    }
+                    return message;
+                }));
             });
 
             setSocket(newSocket);
@@ -119,10 +156,14 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                                 <p className="text-sm text-gray-500 dark:text-gray-400">{formatMessageTimestamp(message.timestamp)}</p>
                             </div>
                             <p className="text-gray-800 dark:text-white">{message.content}</p>
+                            {console.log(message)}
+                            {message.edited && (
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Edited</p>
+                            )}
                             <div className="flex items-center space-x-4 mt-2">
                                 {loggedInUser.userName === message.sender && (
                                     <>
-                                        <FaEdit className="text-blue-500 hover:text-blue-600 transition-transform"
+                                        <FaEdit className="text-blue-500 hover:text-blue-600 transition-transform no-select"
                                                 onClick={() => setCurrentChatEditMessage(message)}/>
                                         <FaTrash className="text-red-500 hover:text-red-600 transition-transform"/>
                                     </>
@@ -132,6 +173,30 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                             </div>
                         </div>
                     </div>
+                    {currentChatEditMessage?._id === message._id && (
+                        <form className="mt-4" onSubmit={editMessage}>
+                            <input
+                                className="w-full p-4 h-12 bg-zinc-400 dark:bg-zinc-900 dark:text-white text-black placeholder-zinc-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Type your message here..."
+                                value={currentChatEditMessage.content}
+                                onChange={(e) => setCurrentChatEditMessage(prevMessage => ({ ...prevMessage, content: e.target.value }))}
+                            />
+                            <div className="space-x-4">
+                                <button
+                                    className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-blue-600 transition-transform"
+                                    type="submit"
+                                >
+                                    Save
+                                </button>
+                                <button
+                                    className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-red-600 transition-transform"
+                                    onClick={() => setCurrentChatEditMessage(null)}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    )}
                 </div>
             ))}
             {currentChatHistory.length > displayedMessages && (
