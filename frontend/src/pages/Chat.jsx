@@ -58,9 +58,6 @@ const Chat = () => {
 
     return (
         <div className="bg-zinc-200 dark:bg-zinc-900 min-h-screen p-4">
-            <h1 className="text-4xl text-white font-semibold mb-4">Chat</h1>
-            <p className="text-white text-xl">This is the chat page. You can chat with other users here.</p>
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
                 <div className="col-span-1 md:col-span-2">
                     <h2 className="text-4xl text-gray-800 dark:text-white font-semibold mb-4">Previous Chats</h2>
