@@ -116,7 +116,7 @@ const Chat = () => {
             <div className="mt-8">
                 {Object.keys(currentChat).length > 0 ? (
                     <>
-                        <h2 className="text-4xl text-gray-800 dark:text-white font-semibold mb-4">{currentChat.participants.length > 2 ? "Group chat" : `Chat with ${currentChat.participants[0]}`}</h2>
+                        <h2 className="text-4xl text-gray-800 dark:text-white font-semibold mb-4">{currentChat.participants.length > 2 ? "Group chat" : `Chat with ${findSecondParticipant(currentChat.participants)}`}</h2>
                         {currentChat.participants.length > 2 && (
                             <>
                                 <p className="text-gray-600 dark:text-gray-400 text-lg">Participants: {currentChat.participants.filter(user => user !== loggedInUser.userName).join(', ')}</p>
@@ -125,7 +125,10 @@ const Chat = () => {
                         <ListChatMessages currentChat={currentChat} setCurrentChat={setCurrentChat} />
                     </>
                 ) : (
-                    <p className="text-gray-800 dark:text-white text-xl">Select a chat to start chatting.</p>
+                    <p className="flex justify-center text-center text-gray-800 dark:text-white text-xl">
+                        Select either a previous chat or a user to start a new chat.<br/>
+                        Once you start a chat, the chat will appear here.
+                    </p>
                 )}
             </div>
         </div>
