@@ -196,7 +196,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                             </div>
                         </div>
                     </div>
-                    {currentChatEditMessage?._id === message._id && (
+                    {currentChatEditMessage !== null && currentChatEditMessage._id === message._id && (
                         <form className="mt-4" onSubmit={editMessage}>
                             <input
                                 className="w-full p-4 h-12 bg-zinc-400 dark:bg-zinc-900 dark:text-white text-black placeholder-zinc-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
