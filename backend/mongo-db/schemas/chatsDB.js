@@ -8,6 +8,8 @@ module.exports = model(
             sender: { type: String, required: true },
             content: { type: String, required: true },
             timestamp: { type: Date, default: Date.now },
+            edited: { type: Boolean, default: false },
+            readBy: { type: Array },
             attachments: [{
                 filename: { type: String, required: true },
                 url: { type: String, required: true },
