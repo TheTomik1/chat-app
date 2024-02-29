@@ -1,35 +1,45 @@
 import React, { useState, useEffect } from "react";
 import io from 'socket.io-client';
 import axios from "axios";
-import { format, isToday, isYesterday, parseISO } from "date-fns";
 
 import {useAuth} from "../context/Auth";
 
 const Chat = () => {
     const { loggedInUser } = useAuth();
 
+    const [socket, setSocket] = useState(null);
+
     const [users, setUsers] = useState([]);
     const [previousChats, setPreviousChats] = useState([]);
 
     const [currentChat, setCurrentChat] = useState({});
     const [currentChatHistory, setCurrentChatHistory] = useState([]);
+    const [sessionMessages, setSessionMessages] = useState([]);
     const [currentChatNewMessage, setCurrentChatNewMessage] = useState("");
 
     const [userDetails, setUserDetails] = useState({});
 
     async function fetchUsers() {
-        const response = await axios.get('list-users');
+        try {
+            const response = await axios.get('list-users');
 
-        if (response.status === 200) {
-            setUsers(response.data.users);
+            if (response.status === 200) {
+                setUsers(response.data.users);
+            }
+        } catch (e) {
+            // No users found.
         }
     }
 
     async function fetchPreviousChats() {
-        const response = await axios.get('previous-chats');
+        try {
+            const response = await axios.get('previous-chats');
 
-        if (response.status === 200) {
-            setPreviousChats(response.data.previousChats);
+            if (response.status === 200) {
+                setPreviousChats(response.data.previousChats);
+            }
+        } catch (e) {
+            // No previous chats found.
         }
     }
 
@@ -48,42 +58,29 @@ const Chat = () => {
     }
 
     async function userDetail(userName) {
-        const response = await axios.get(`user-details?userName=${userName}`);
+        try {
+            const response = await axios.get(`user-details?userName=${userName}`);
 
-        if (response.status === 200) {
-            setUserDetails(response.data.user);
+            if (response.status === 200) {
+                setUserDetails(response.data.user);
+            }
+        } catch (e) {
+            // No user found.
         }
     }
 
-    async function sendMessage(e) {
-        e.preventDefault();
+    async function deleteChat() {
+        try {
+            const deleteChatResponse = await axios.post('delete-chat', {
+                participants: currentChat.participants
+            });
 
-        const sendMessageResponse = await axios.post('send-message', {
-            message: currentChatNewMessage,
-            participants: currentChat.participants,
-            sender: loggedInUser.userName
-        });
-
-        if (sendMessageResponse.status === 201) {
-            console.log('Message sent.');
-            setCurrentChatNewMessage("");
-        } else {
-            console.log('Failed to send message.');
+            if (deleteChatResponse.status === 201) {
+                setCurrentChat({});
+            }
+        } catch (e) {
         }
     }
-
-    function formatMessageTimestamp(timestamp) {
-        const messageDate = parseISO(timestamp);
-
-        if (isToday(messageDate)) {
-            return `Today at ${messageDate.toLocaleTimeString()}`;
-        } else if (isYesterday(messageDate)) {
-            return `Yesterday at ${messageDate.toLocaleTimeString()}`;
-        } else {
-            return format(messageDate, "dd/MM/yyyy HH:mm:ss")
-        }
-    }
-
 
     useEffect(() => {
         fetchUsers();
@@ -92,27 +89,10 @@ const Chat = () => {
 
     useEffect(() => {
         if (Object.keys(currentChat).length > 0) {
-            console.log('Fetching chat history...');
             fetchChatHistory();
         }
     }, [currentChat]);
 
-
-    useEffect(() => {
-        const socket = io('http://localhost:8080', { withCredentials: true });
-
-        socket.on('connect', () => {
-            console.log('Connected to the server.');
-        });
-
-        socket.on('disconnect', () => {
-            console.log('Disconnected from the server.');
-        });
-
-        return () => {
-            socket.disconnect();
-        };
-    }, []);
 
     return (
         <div className="bg-zinc-200 dark:bg-zinc-900 min-h-screen p-4">
@@ -149,7 +129,7 @@ const Chat = () => {
                 <div className="col-span-1 md:col-span-1">
                     <h2 className="text-4xl text-gray-800 dark:text-white font-semibold mb-4">List of all users</h2>
                     <div className="space-y-4">
-                        {users.map((user, index) => (
+                        {users.filter(user => user.userName !== loggedInUser.userName).map((user, index) => (
                             <div key={index} className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md hover:cursor-pointer hover:scale-105 transition-transform">
                                 <p className="text-gray-800 text-2xl dark:text-white font-semibold">{user.userName}</p>
                                 <div className="space-x-4">
@@ -176,23 +156,11 @@ const Chat = () => {
                         <h2 className="text-4xl text-gray-800 dark:text-white font-semibold mb-4">{currentChat.participants.length > 2 ? "Group chat" : `Chat with ${currentChat.participants[0]}`}</h2>
                         <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md">
                             <div className="space-y-4">
-                                {Object.keys(currentChatHistory).length > 0 ? (
-                                    currentChatHistory.messages.map((message, index) => (
-                                        <div key={index} className="bg-zinc-200 dark:bg-zinc-800 p-2 rounded-lg hover:dark:bg-zinc-700 transition-colors">
-                                            <div className="flex flex-row space-x-4">
-                                                <p className="text-gray-800 dark:text-white font-semibold">{message.sender}</p>
-                                                <p className="text-gray-600 dark:text-gray-400">{formatMessageTimestamp(message.timestamp)}</p>
-                                            </div>
-                                            <p className="text-gray-800 dark:text-white">{message.content}</p>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-gray-800 dark:text-white text-xl">No messages yet.</p>
-                                )}
+                                // The chat will be here. Live and history.
                             </div>
-                            <form className="mt-4" onSubmit={sendMessage}>
+                            <form className="mt-4" onSubmit={null}>
                                 <input
-                                    className="w-full p-4 h-12 bg-zinc-200 dark:bg-zinc-900 text-gray-800 dark:text-white rounded-lg"
+                                    className="w-full p-4 h-12 bg-zinc-200 dark:bg-zinc-900 text-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="Type your message here..."
                                     value={currentChatNewMessage}
                                     onChange={e => setCurrentChatNewMessage(e.target.value)}
