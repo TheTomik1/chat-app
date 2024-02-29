@@ -38,7 +38,6 @@ router.post("/send-message", authMiddleware, async(req, res) => {
 
         await res.status(201).send({ message: 'Message sent.' });
     } catch (e) {
-        console.error(e);
         await res.status(500).send({ message: 'Internal server error.' });
     }
 });

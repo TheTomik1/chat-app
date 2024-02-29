@@ -102,7 +102,7 @@ const Chat = () => {
                                     </button>
                                     <button
                                         className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-blue-600 transition-transform"
-                                        onClick={() => setCurrentChat({ participants: [loggedInUser.userName, user.userName] })}>
+                                        onClick={() => setCurrentChat(previousChats.find(chat => chat.participants.includes(user.userName)) || { participants: [loggedInUser.userName, user.userName] })}>
                                         Chat
                                     </button>
                                 </div>

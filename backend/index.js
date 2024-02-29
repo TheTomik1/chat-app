@@ -30,17 +30,53 @@ calendarApi.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 calendarApi.use("/api", endpoints);
 
 io.on("connection", (socket) => {
-  console.log("A user connected");
+    socket.on("authenticate", (authData) => {
+        socket.userAllowedChats = authData.allowedChats.map((chat) => chat._id);
+        socket.user = authData.userName;
+    });
 
-  socket.on("join-chat", (chatId) => {
-    console.log(`User joined chat ${chatId}`);
-    socket.join(chatId);
-  });
+    socket.on("join-chat", (chatId) => {
+        if (socket.userAllowedChats && socket.userAllowedChats.includes(chatId)) {
+          socket.join(chatId);
+        } else {
+        }
+    });
 
-  socket.on("disconnect", () => {
-    console.log("A user disconnected");
-  });
+    socket.on("disconnect", () => {
+      if (socket.user) {
+        console.log("User disconnected:", socket.user);
+      } else {
+        console.log("An unauthorized user disconnected");
+      }
+    });
+
+    socket.on("send-message", (message) => {
+        if (socket.userAllowedChats && socket.userAllowedChats.includes(message.chatId)) {
+            io.to(message.chatId).emit("new-message", message);
+        } else {
+            console.log("User not allowed to send message to this chat");
+        }
+    });
+
+    socket.on("edit-message", (editedMessage) => {
+        if (socket.userAllowedChats && socket.userAllowedChats.includes(editedMessage.chatId)) {
+            io.to(editedMessage.chatId).emit("edited-message", editedMessage);
+        } else {
+            console.log("User not allowed to edit message in this chat");
+        }
+    });
+
+    socket.on("delete-message", (messageId) => {
+      // Similar authentication and permission checks for deleting messages
+    });
+
+    socket.on("add-reaction", (reaction) => {
+      // Similar authentication and permission checks for adding reactions
+    });
+
+    // Add more event handlers as needed
 });
+
 
 calendarApiServer.listen(8080);
 calendarApiServer.on('listening', onListening);

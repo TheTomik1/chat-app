@@ -23,12 +23,13 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     const { loggedInUser } = useAuth();
     const [socket, setSocket] = useState(null);
 
+    const [allowedChats, setAllowedChats] = useState([]);
+
     const [currentChatHistory, setCurrentChatHistory] = useState([]);
     const [currentChatNewMessage, setCurrentChatNewMessage] = useState("");
+    const [currentChatEditMessage, setCurrentChatEditMessage] = useState(null);
 
     async function fetchChatHistory() {
-        console.log("Fetching chat history...");
-
         try {
             const chatHistoryResponse = await axios.get("chat-history", {
                 params: { participants: currentChat.participants },
@@ -39,6 +40,18 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             }
         } catch (e) {
             // No chat history found.
+        }
+    }
+
+    async function fetchAllowedChats() {
+        try {
+            const chatsResponse = await axios.get("chats");
+
+            if (chatsResponse.status === 200) {
+                setAllowedChats(chatsResponse.data.chats);
+            }
+        } catch (e) {
+            // No chats found.
         }
     }
 
@@ -55,14 +68,12 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                 });
 
                 if (sendMessageResponse.status === 201) {
-                    setCurrentChatHistory([
-                        ...currentChatHistory,
-                        {
-                            sender: loggedInUser.userName,
-                            content: currentChatNewMessage,
-                            timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
-                        },
-                    ]);
+                    socket.emit("send-message", {
+                        sender: loggedInUser.userName,
+                        content: currentChatNewMessage,
+                        timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
+                        chatId: currentChat._id,
+                    });
                     setCurrentChatNewMessage("");
                 }
             }
@@ -74,16 +85,23 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     useEffect(() => {
         if (currentChat.participants) {
             fetchChatHistory();
-            const newSocket = socketIOClient("http://localhost:8080");
-            setSocket(newSocket);
-
-            newSocket.on('new-message', (newMessage) => {
-                console.log("Received new message:", newMessage);
-                setCurrentChatHistory(prevHistory => [...prevHistory, newMessage]);
-            });
+            fetchAllowedChats();
         }
     }, [currentChat.participants]);
 
+    useEffect(() => {
+        if (allowedChats.length > 0) {
+            const newSocket = socketIOClient("http://localhost:8080");
+
+            newSocket.emit("authenticate", { allowedChats, userName: loggedInUser.userName });
+
+            newSocket.on('new-message', (newMessage) => {
+                setCurrentChatHistory(prevHistory => [...prevHistory, newMessage]);
+            });
+
+            setSocket(newSocket);
+        }
+    }, [allowedChats]);
 
     return (
         <div className="w-full bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-4">
@@ -96,10 +114,16 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                                 <p className="font-bold text-black dark:text-white">{message.sender}</p>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">{formatMessageTimestamp(message.timestamp)}</p>
                             </div>
-                            <p className="text-dark dark:text-white">{message.content}</p>
+                            <p className="text-gray-800 dark:text-white">{message.content}</p>
                             <div className="flex items-center space-x-4 mt-2">
-                                <FaEdit className="text-blue-500 hover:text-blue-600 transition-transform"/>
-                                <FaTrash className="text-red-500 hover:text-red-600 transition-transform"/>
+                                {loggedInUser.userName === message.sender && (
+                                    <>
+                                        <FaEdit className="text-blue-500 hover:text-blue-600 transition-transform"
+                                                onClick={() => setCurrentChatEditMessage(message)}/>
+                                        <FaTrash className="text-red-500 hover:text-red-600 transition-transform"/>
+                                    </>
+                                )}
+
                                 <FaGrinBeam className="text-yellow-500 hover:text-yellow-600 transition-transform"/>
                             </div>
                         </div>
