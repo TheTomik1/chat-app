@@ -130,7 +130,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             newSocket.on('edited-message', (editedMessage) => {
                 setCurrentChatHistory(prevHistory => prevHistory.map(message => {
                     if (message._id === editedMessage.messageId) {
-                        return { ...message, content: editedMessage.content, timestamp: editedMessage.timestamp };
+                        return { ...message, content: editedMessage.content, edited: true };
                     }
                     return message;
                 }));

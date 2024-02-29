@@ -56,12 +56,12 @@ router.post("/edit-message", authMiddleware, async(req, res) => {
             return res.status(404).send({ message: 'Message not found.' });
         }
 
-        await chatDB.updateOne({ _id: chat._id }, { $set: { [`messages.${messageIndex}.content`]: message, [`messages.${messageIndex}.edited`]: true } });
+        await chatDB.updateOne({ _id: chat._id }, { $set: { [`messages.${messageIndex}.content`]: message, [`messages.${messageIndex}.edited`]: true }, $currentDate: { updatedAt: true } });
 
         req.io.to(chat._id).emit('edited-message', {
             messageId,
             content: message,
-            timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
+            edited: true,
         });
 
         await res.status(201).send({ message: 'Message edited.' });
