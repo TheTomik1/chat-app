@@ -3,7 +3,7 @@ const { format } = require('date-fns');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-require('dotenv').config({ path: __dirname + '/.env' });
+require('dotenv').config({ path: __dirname + '/.ENV' });
 
 const authMiddleware = require('./middlewares/auth');
 
