@@ -66,8 +66,12 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("delete-message", (messageId) => {
-      // Similar authentication and permission checks for deleting messages
+    socket.on("delete-message", (messageId, chatId) => {
+        if (socket.userAllowedChats && socket.userAllowedChats.includes(chatId)) {
+            io.to(chatId).emit("deleted-message", messageId);
+        } else {
+            console.log("User not allowed to delete message in this chat");
+        }
     });
 
     socket.on("add-reaction", (reaction) => {

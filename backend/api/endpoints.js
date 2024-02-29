@@ -71,6 +71,31 @@ router.post("/edit-message", authMiddleware, async(req, res) => {
     }
 });
 
+router.post("/delete-message", authMiddleware, async(req, res) => {
+    try {
+        const { participants, messageId } = req.body;
+
+        if (!participants || !messageId) {
+            return res.status(400).send({ message: 'Invalid body.' });
+        }
+
+        const chat = await chatDB.findOne({ participants });
+        const messageIndex = chat.messages.findIndex(msg => msg._id.toString() === messageId);
+        if (messageIndex === -1) {
+            return res.status(404).send({ message: 'Message not found.' });
+        }
+
+        await chatDB.updateOne({ _id: chat._id }, { $pull: { messages: { _id: messageId } } });
+
+        req.io.to(chat._id).emit('deleted-message', messageId, chat._id);
+
+        await res.status(201).send({ message: 'Message deleted.' });
+    } catch (e) {
+        await res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
+
 
 
 

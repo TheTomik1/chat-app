@@ -27,7 +27,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     const [currentChatHistory, setCurrentChatHistory] = useState([]);
     const [currentChatNewMessage, setCurrentChatNewMessage] = useState("");
     const [currentChatEditMessage, setCurrentChatEditMessage] = useState(null);
-    const [displayedMessages, setDisplayedMessages] = useState(20);
+    const [displayedMessages, setDisplayedMessages] = useState(10);
 
     async function fetchChatHistory() {
         try {
@@ -110,6 +110,25 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         }
     }
 
+    async function deleteMessage(messageId) {
+        try {
+            if (socket) {
+                socket.emit("join-chat", currentChat._id);
+
+                const deleteMessageResponse = await axios.post("delete-message", {
+                    participants: currentChat.participants,
+                    messageId,
+                });
+
+                if (deleteMessageResponse.status === 201) {
+                    socket.emit("delete-message", messageId, currentChat._id);
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
     useEffect(() => {
         if (currentChat.participants) {
             fetchChatHistory();
@@ -136,6 +155,10 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                 }));
             });
 
+            newSocket.on('deleted-message', (deletedMessageId) => {
+                setCurrentChatHistory(prevHistory => prevHistory.filter(message => message._id !== deletedMessageId));
+            });
+
             setSocket(newSocket);
         }
     }, [allowedChats]);
@@ -156,7 +179,6 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                                 <p className="text-sm text-gray-500 dark:text-gray-400">{formatMessageTimestamp(message.timestamp)}</p>
                             </div>
                             <p className="text-gray-800 dark:text-white">{message.content}</p>
-                            {console.log(message)}
                             {message.edited && (
                                 <p className="text-sm text-gray-500 dark:text-gray-400">Edited</p>
                             )}
@@ -165,7 +187,8 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                                     <>
                                         <FaEdit className="text-blue-500 hover:text-blue-600 transition-transform no-select"
                                                 onClick={() => setCurrentChatEditMessage(message)}/>
-                                        <FaTrash className="text-red-500 hover:text-red-600 transition-transform"/>
+                                        <FaTrash className="text-red-500 hover:text-red-600 transition-transform"
+                                                    onClick={() => deleteMessage(message._id)}/>
                                     </>
                                 )}
 
