@@ -73,7 +73,7 @@ const LoginForm = ({ onClose }) => {
     }
 
     return (
-        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-gray-900 dark:bg-gray-100 bg-opacity-50 z-50">
+        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-gray-900 bg-opacity-50 z-50">
             <div className="text-center bg-white dark:bg-zinc-800 p-8 rounded-lg shadow-lg w-96 flex flex-col items-center">
                 <h2 className="text-4xl text-black dark:text-white font-semibold mb-4">Login</h2>
                 <form onSubmit={handleSubmit} className="w-full">

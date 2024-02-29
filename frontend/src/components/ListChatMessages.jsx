@@ -57,16 +57,16 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         }
     }
 
-    async function fetchProfilePictures(senders) {
+    async function fetchProfilePictures(participants) {
         try {
-            for (const sender of senders) {
+            for (const participant of participants) {
                 const response = await axios.get("profile-picture", {
-                    params: { userName: sender },
+                    params: { userName: participant },
                     responseType: "blob",
                 });
 
                 const url = URL.createObjectURL(response.data);
-                setCurrentChatProfilePictures(prevPictures => ({ ...prevPictures, [sender]: url }));
+                setCurrentChatProfilePictures(prevPictures => ({ ...prevPictures, [participant]: url }));
             }
         } catch (error) {
             // No profile picture found.
