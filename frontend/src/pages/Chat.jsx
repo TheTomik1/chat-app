@@ -3,7 +3,7 @@ import axios from "axios";
 
 import ListChatMessages from "../components/ListChatMessages";
 
-import {useAuth} from "../context/Auth";
+import { useAuth } from "../context/Auth";
 
 const Chat = () => {
     const { loggedInUser } = useAuth();
@@ -130,7 +130,7 @@ const Chat = () => {
                                 <p className="text-gray-600 dark:text-gray-400 text-lg">Participants: {currentChat.participants.filter(user => user !== loggedInUser.userName).join(', ')}</p>
                             </>
                         )}
-                        <ListChatMessages currentChat={currentChat} setCurrentChat={setCurrentChat} />
+                        <ListChatMessages key={previousChats.indexOf(currentChat)}  currentChat={currentChat} setCurrentChat={setCurrentChat} />
                     </>
                 ) : (
                     <p className="flex justify-center text-center text-gray-800 dark:text-white text-xl">
