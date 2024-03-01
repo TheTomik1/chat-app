@@ -56,6 +56,9 @@ const Chat = () => {
     }
 
     useEffect(() => {
+        fetchUsers();
+        fetchChats();
+
         const fetchUsersInterval = setInterval(fetchUsers, 10000);
         const fetchChatsInterval = setInterval(fetchChats, 10000);
 
