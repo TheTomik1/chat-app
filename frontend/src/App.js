@@ -25,6 +25,7 @@ function App() {
     // TODO: If the group chat exists, the user should be able to still have separate chat with the same user.
     // TODO: Add reactions.
     // TODO: Add support for images, videos and voice messages.
+    // TODO: Use the encryption and decryption for socket.io messages. (Maybe)
 
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [cookies, setCookie] = useCookies(['darkMode']);
