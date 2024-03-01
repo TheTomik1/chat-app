@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { format, isToday, isYesterday, parseISO } from "date-fns";
 import axios from "axios";
 import socketIOClient from "socket.io-client";
@@ -22,6 +23,8 @@ function formatMessageTimestamp(timestamp) {
 
 const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     const { loggedInUser } = useAuth();
+    const { navigate } = useNavigate();
+
     const [socket, setSocket] = useState(null);
 
     const [allowedChats, setAllowedChats] = useState([]);
@@ -30,6 +33,9 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     const [currentChatNewMessage, setCurrentChatNewMessage] = useState("");
     const [currentChatEditMessage, setCurrentChatEditMessage] = useState(null);
     const [displayedMessages, setDisplayedMessages] = useState(10);
+
+    const [invitedUser, setInvitedUser] = useState([]);
+    const [invitationFormOpenend, setInvitationFormOpened] = useState(false);
 
     async function fetchChatHistory() {
         try {
@@ -83,6 +89,26 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             });
         } catch (error) {
             // Handle errors
+        }
+    }
+
+    async function inviteUser(e, userName) {
+        try {
+            const inviteUserResponse = await axios.post("invite-user", {
+                participants: currentChat.participants,
+                chatId: currentChat._id,
+                invitee: userName,
+            });
+
+            if (inviteUserResponse.status === 201) {
+                setInvitedUser("");
+            }
+        } catch (e) {
+            if (e.response.data.message === "Chat with invitee already exists.") {
+                toast("User is already in chat.", { type: "error" });
+            } else if (e.response.data.message === "Invitee not found.") {
+                toast("User not found.", { type: "error" });
+            }
         }
     }
 
@@ -164,6 +190,15 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         setDisplayedMessages(displayedMessages + 20);
     };
 
+    const handleInvitation = (e) => {
+        e.preventDefault();
+        if (invitationFormOpenend === true) {
+            setInvitationFormOpened(false);
+        } else {
+            setInvitationFormOpened(true);
+        }
+    }
+
     useEffect(() => {
         if (currentChat.participants) {
             fetchChatHistory();
@@ -180,10 +215,6 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             newSocket.on('connect', () => {
                 if (allowedChats && Array.isArray(allowedChats)) {
                     newSocket.emit("authenticate", { allowedChats: allowedChats.map(chat => chat._id), userName: loggedInUser.userName });
-
-                    if (currentChat._id) {
-                        newSocket.emit("join-chat", currentChat._id);
-                    }
                 } else {
                     console.log("Allowed chats not available or invalid.");
                 }
@@ -298,8 +329,37 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                     >
                         Close Chat
                     </button>
+                    <button
+                        className="bg-green-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-green-600 transition-transform"
+                        onClick={handleInvitation}>
+                        Invite User
+                    </button>
                 </div>
             </form>
+            {invitationFormOpenend && (
+                <form className="mt-4" onSubmit={(e) => inviteUser(e, invitedUser)}>
+                    <input
+                        className="w-full p-4 h-12 bg-zinc-200 dark:bg-zinc-900 text-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Type the username of the user you want to invite..."
+                        value={invitedUser}
+                        onChange={(e) => setInvitedUser(e.target.value)}
+                    />
+                    <div className="space-x-4">
+                        <button
+                            className="bg-green-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-green-600 transition-transform"
+                            type="submit"
+                        >
+                            Invite
+                        </button>
+                        <button
+                            className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-red-600 transition-transform"
+                            onClick={handleInvitation}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            )}
         </div>
     );
 };

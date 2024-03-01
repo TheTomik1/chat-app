@@ -171,6 +171,40 @@ router.post("/update-user", authMiddleware, async(req, res) => {
     }
 });
 
+router.post("/invite-user", authMiddleware, async(req, res) => {
+    try {
+        const { participants, chatId, invitee } = req.body;
+
+        if (!Array.isArray(participants) || participants.length === 0 || !chatId || !invitee) {
+            return res.status(400).send({ message: 'Invalid body.' });
+        }
+
+        const chat = await chatDB.findOne({ _id: chatId, participants: req.user.id });
+
+        if (!chat) {
+            return res.status(404).send({ message: 'Chat not found.' });
+        }
+
+        const inviteeUser = await userDB.findOne({ userName: invitee });
+
+        if (!inviteeUser) {
+            return res.status(404).send({ message: 'Invitee not found.' });
+        }
+
+        const chatWithInvitee = await chatDB.findOne({ participants: { $all: [req.user.id, invitee] } });
+
+        if (chatWithInvitee) {
+            return res.status(400).send({ message: 'Chat with invitee already exists.' });
+        }
+
+        const updatedChat = await chatDB.updateOne({ _id: chatId }, { $push: { participants: invitee } });
+
+        await res.status(201).send({ message: 'User invited.' });
+    } catch (e) {
+        await res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
 router.post("/upload-profile-picture", authMiddleware, async(req, res) => {
     try {
         upload.single('file')(req, res, async (err) => {

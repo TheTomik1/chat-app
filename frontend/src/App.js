@@ -21,6 +21,13 @@ import { AuthProvider } from './context/Auth';
 import './styles.css';
 
 function App() {
+    // TODO: First message in new chat does not get received and needs fix.
+    // TODO: Add reactions.
+    // TODO: Add support for images, videos and voice messages.
+    // TODO: Add support for handling chat deletion and leaving chats.
+    // TODO: Add support for user is typing feature.
+    // TODO: Add support for user presence and bell with missed messages.
+
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [cookies, setCookie] = useCookies(['darkMode']);
 
