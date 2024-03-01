@@ -23,7 +23,6 @@ import './styles.css';
 function App() {
     // TODO: First message in new chat does not get received and needs fix.
     // TODO: If the group chat exists, the user should be able to still have separate chat with the same user.
-    // TODO: Fix message editing and deleting.
     // TODO: Add reactions.
     // TODO: Add support for images, videos and voice messages.
 

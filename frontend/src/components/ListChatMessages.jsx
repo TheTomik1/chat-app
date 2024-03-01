@@ -206,7 +206,6 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     };
 
     async function deleteMessage(messageId) {
-        // Delete message in backend and emit to socket
         try {
             const deleteMessageResponse = await axios.post("delete-message", {
                 participants: currentChat.participants,
@@ -256,7 +255,6 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             });
 
             newSocket.on('new-message', (newMessage) => {
-                console.log("Received new message:", newMessage);
                 setCurrentChatHistory(prevHistory => [...prevHistory, newMessage]);
             });
 
@@ -270,7 +268,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             });
 
             newSocket.on('deleted-message', (deletedMessageId) => {
-                setCurrentChatHistory(prevHistory => prevHistory.filter(message => message._id !== deletedMessageId));
+                setCurrentChatHistory(prevHistory => prevHistory.filter(message => message._id || message.messageId !== deletedMessageId));
             });
         }
 
@@ -302,7 +300,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                                         <FaEdit className="text-blue-500 hover:text-blue-600 transition-transform no-select"
                                                 onClick={() => startEditMessage(message)}/>
                                         <FaTrash className="text-red-500 hover:text-red-600 transition-transform"
-                                                onClick={() => deleteMessage(message._id)}/>
+                                                onClick={() => deleteMessage(message._id || message.messageId)}/>
                                     </>
                                 )}
 
