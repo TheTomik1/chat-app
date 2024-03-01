@@ -86,30 +86,25 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         }
     }
 
-
     async function sendMessage(e) {
+        // Send message to backend and emit to socket
         e.preventDefault();
 
         try {
-            if (socket) {
-                socket.emit("join-chat", currentChat._id);
+            const sendMessageResponse = await axios.post("send-message", {
+                participants: currentChat.participants,
+                message: currentChatNewMessage,
+            });
 
-                const sendMessageResponse = await axios.post("send-message", {
-                    participants: currentChat.participants,
-                    message: currentChatNewMessage,
+            if (sendMessageResponse.status === 201 && socket) {
+                socket.emit("send-message", {
+                    sender: loggedInUser.userName,
+                    content: currentChatNewMessage,
+                    timestamp: new Date().toISOString(),
+                    chatId: currentChat._id,
                 });
 
-                if (sendMessageResponse.status === 201) {
-                    socket.emit("send-message", {
-                        sender: loggedInUser.userName,
-                        content: currentChatNewMessage,
-                        timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
-                        chatId: currentChat._id,
-                    });
-
-                    toast("Message sent.", { type: "success" });
-                    setCurrentChatNewMessage("");
-                }
+                setCurrentChatNewMessage("");
             }
         } catch (e) {
             toast("Failed to send message.", { type: "error" });
@@ -117,29 +112,25 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     }
 
     async function editMessage(e) {
+        // Edit message in backend and emit to socket
         e.preventDefault();
 
         try {
-            if (socket) {
-                socket.emit("join-chat", currentChat._id);
+            const editMessageResponse = await axios.post("edit-message", {
+                participants: currentChat.participants,
+                message: currentChatEditMessage.content,
+                messageId: currentChatEditMessage._id,
+            });
 
-                const editMessageResponse = await axios.post("edit-message", {
-                    participants: currentChat.participants,
-                    message: currentChatEditMessage.content,
+            if (editMessageResponse.status === 201 && socket) {
+                socket.emit("edit-message", {
                     messageId: currentChatEditMessage._id,
+                    content: currentChatEditMessage.content,
+                    timestamp: new Date().toISOString(),
+                    chatId: currentChat._id,
                 });
 
-                if (editMessageResponse.status === 201) {
-                    socket.emit("edit-message", {
-                        messageId: currentChatEditMessage._id,
-                        content: currentChatEditMessage.content,
-                        timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
-                        chatId: currentChat._id,
-                    });
-
-                    toast("Message edited.", { type: "success" })
-                    setCurrentChatEditMessage(null);
-                }
+                setCurrentChatEditMessage(null);
             }
         } catch (e) {
             toast("Failed to edit message.", { type: "error" });
@@ -147,24 +138,24 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     }
 
     async function deleteMessage(messageId) {
+        // Delete message in backend and emit to socket
         try {
-            if (socket) {
-                socket.emit("join-chat", currentChat._id);
+            const deleteMessageResponse = await axios.post("delete-message", {
+                participants: currentChat.participants,
+                messageId,
+            });
 
-                const deleteMessageResponse = await axios.post("delete-message", {
-                    participants: currentChat.participants,
-                    messageId,
-                });
-
-                if (deleteMessageResponse.status === 201) {
-                    socket.emit("delete-message", messageId, currentChat._id);
-                    toast("Message deleted.", { type: "info" });
-                }
+            if (deleteMessageResponse.status === 201 && socket) {
+                socket.emit("delete-message", messageId, currentChat._id);
             }
         } catch (e) {
             toast("Failed to delete message.", { type: "error" });
         }
     }
+
+    const loadMoreMessages = () => {
+        setDisplayedMessages(displayedMessages + 20);
+    };
 
     useEffect(() => {
         if (currentChat.participants) {
@@ -176,13 +167,26 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
 
     useEffect(() => {
         const newSocket = socketIOClient("http://localhost:8080");
-        setSocket(newSocket)
+        setSocket(newSocket);
 
-        if (allowedChats.length > 0) {
-            newSocket.emit("authenticate", { allowedChats, userName: loggedInUser.userName });
+        if (newSocket) {
+            console.log(allowedChats);
+
+            newSocket.on('connect', () => {
+                if (allowedChats && Array.isArray(allowedChats)) {
+                    newSocket.emit("authenticate", { allowedChats: allowedChats.map(chat => chat._id), userName: loggedInUser.userName });
+
+                    if (currentChat._id) {
+                        newSocket.emit("join-chat", currentChat._id);
+                    }
+                } else {
+                    console.log("Allowed chats not available or invalid.");
+                }
+            });
 
             newSocket.on('new-message', (newMessage) => {
-                setCurrentChatHistory(prevHistory => [...prevHistory, newMessage]); // Add new message at the end
+                console.log("Received new message:", newMessage);
+                setCurrentChatHistory(prevHistory => [...prevHistory, newMessage]);
             });
 
             newSocket.on('edited-message', (editedMessage) => {
@@ -198,11 +202,13 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                 setCurrentChatHistory(prevHistory => prevHistory.filter(message => message._id !== deletedMessageId));
             });
         }
-    }, []);
 
-    const loadMoreMessages = () => {
-        setDisplayedMessages(displayedMessages + 20);
-    };
+        return () => {
+            if (newSocket) {
+                newSocket.disconnect();
+            }
+        };
+    }, [allowedChats, currentChat._id, loggedInUser.userName]);
 
     return (
         <div className="w-full bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-4">

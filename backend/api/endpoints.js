@@ -206,8 +206,8 @@ router.post("/send-message", authMiddleware, async (req, res) => {
     try {
         const { participants, message } = req.body;
 
-        if (!participants || !message) {
-            return res.status(400).send({ message: 'Invalid body.' });
+        if (!Array.isArray(participants) || participants.length === 0 || !message) {
+            return res.status(400).json({ message: 'Invalid body.' });
         }
 
         let chat = await chatDB.findOne({ participants: { $all: participants } });
@@ -216,18 +216,16 @@ router.post("/send-message", authMiddleware, async (req, res) => {
             chat = await chatDB.create({ participants, messages: [{ sender: req.user.id, content: message }] });
         }
 
-        await chatDB.updateOne({ _id: chat._id }, { $push: { messages: { sender: req.user.id, content: message } } });
-
         req.io.to(chat._id).emit('new-message', {
             sender: req.user.id,
             content: message,
             timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
         });
 
-        return res.status(201).send({ message: 'Message sent.' });
+        return res.status(201).json({ message: 'Message sent.' });
     } catch (e) {
         console.error(e);
-        return res.status(500).send({ message: 'Internal server error.' });
+        return res.status(500).json({ message: 'Internal server error.' });
     }
 });
 
@@ -235,17 +233,20 @@ router.post("/edit-message", authMiddleware, async(req, res) => {
     try {
         const { participants, message, messageId } = req.body;
 
-        if (!participants || !message || !messageId) {
-            return res.status(400).send({ message: 'Invalid body.' });
+        if (!Array.isArray(participants) || participants.length === 0 || !message || !messageId) {
+            return res.status(400).json({ message: 'Invalid body.' });
         }
 
         const chat = await chatDB.findOne({ participants });
         const messageIndex = chat.messages.findIndex(msg => msg._id.toString() === messageId);
         if (messageIndex === -1) {
-            return res.status(404).send({ message: 'Message not found.' });
+            return res.status(404).json({ message: 'Message not found.' });
         }
 
-        await chatDB.updateOne({ _id: chat._id }, { $set: { [`messages.${messageIndex}.content`]: message, [`messages.${messageIndex}.edited`]: true }, $currentDate: { updatedAt: true } });
+        chat.messages[messageIndex].content = message;
+        chat.messages[messageIndex].edited = true;
+        chat.updatedAt = new Date();
+        await chat.save();
 
         req.io.to(chat._id).emit('edited-message', {
             messageId,
@@ -253,9 +254,10 @@ router.post("/edit-message", authMiddleware, async(req, res) => {
             edited: true,
         });
 
-        await res.status(201).send({ message: 'Message edited.' });
+        return res.status(200).json({ message: 'Message edited.' });
     } catch (e) {
-        await res.status(500).send({ message: 'Internal server error.' });
+        console.error(e);
+        return res.status(500).json({ message: 'Internal server error.' });
     }
 });
 
@@ -263,23 +265,26 @@ router.post("/delete-message", authMiddleware, async(req, res) => {
     try {
         const { participants, messageId } = req.body;
 
-        if (!participants || !messageId) {
-            return res.status(400).send({ message: 'Invalid body.' });
+        if (!Array.isArray(participants) || participants.length === 0 || !messageId) {
+            return res.status(400).json({ message: 'Invalid body.' });
         }
 
         const chat = await chatDB.findOne({ participants });
         const messageIndex = chat.messages.findIndex(msg => msg._id.toString() === messageId);
         if (messageIndex === -1) {
-            return res.status(404).send({ message: 'Message not found.' });
+            return res.status(404).json({ message: 'Message not found.' });
         }
 
-        await chatDB.updateOne({ _id: chat._id }, { $pull: { messages: { _id: messageId } } });
+        chat.messages.splice(messageIndex, 1);
+        chat.updatedAt = new Date();
+        await chat.save();
 
-        req.io.to(chat._id).emit('deleted-message', messageId, chat._id);
+        req.io.to(chat._id).emit('deleted-message', messageId);
 
-        await res.status(201).send({ message: 'Message deleted.' });
+        return res.status(200).json({ message: 'Message deleted.' });
     } catch (e) {
-        await res.status(500).send({ message: 'Internal server error.' });
+        console.error(e);
+        return res.status(500).json({ message: 'Internal server error.' });
     }
 });
 
