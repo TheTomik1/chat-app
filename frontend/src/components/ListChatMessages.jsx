@@ -283,48 +283,48 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         <div className="w-full bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-4">
             {currentChatHistory.slice(Math.max(currentChatHistory.length - displayedMessages, 0)).map((message) => (
                 <div key={message._id} className="bg-zinc-200 dark:bg-zinc-700 rounded-lg shadow-lg p-4 hover:cursor-pointer mb-4">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
                         <img src={currentChatProfilePictures[message.sender] || "https://robohash.org/noprofilepic.png"} alt="UserProfilePicture" className="w-12 h-12 rounded-full" />
-                        <div>
-                            <div className="flex flex-row space-x-4 items-center">
-                                <p className="font-bold text-black dark:text-white">{message.sender}</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{formatMessageTimestamp(message.timestamp)}</p>
+                        <div className="flex flex-col">
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                                <div className="flex items-center space-x-2">
+                                    <p className="font-bold text-black dark:text-white">{message.sender}</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">{formatMessageTimestamp(message.timestamp)}</p>
+                                </div>
+                                {message.edited && (
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Edited</p>
+                                )}
                             </div>
                             <p className="text-gray-800 dark:text-white">{message.content}</p>
-                            {message.edited && (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Edited</p>
-                            )}
                             <div className="flex items-center space-x-4 mt-2">
                                 {loggedInUser.userName === message.sender && (
                                     <>
-                                        <FaEdit className="text-blue-500 hover:text-blue-600 transition-transform no-select"
-                                                onClick={() => startEditMessage(message)}/>
-                                        <FaTrash className="text-red-500 hover:text-red-600 transition-transform"
-                                                onClick={() => deleteMessage(message._id || message.messageId)}/>
+                                        <FaEdit className="text-blue-500 hover:text-blue-600 transition-transform no-select" onClick={() => startEditMessage(message)} />
+                                        <FaTrash className="text-red-500 hover:text-red-600 transition-transform" onClick={() => deleteMessage(message._id || message.messageId)} />
                                     </>
                                 )}
-
-                                <FaGrinBeam className="text-yellow-500 hover:text-yellow-600 transition-transform"/>
+                                <FaGrinBeam className="text-yellow-500 hover:text-yellow-600 transition-transform" />
                             </div>
                         </div>
                     </div>
-                    {chatEditMessage && chatEditMessage._id === message._id && (
-                        <form className="mt-4" onSubmit={editMessage}>
+                    {chatEditMessage && (chatEditMessage._id === message._id || chatEditMessage.messageId === message._id) && (
+                        console.log(chatEditMessage),
+                        <form className="mt-4 flex flex-col md:flex-row md:items-center md:justify-between" onSubmit={editMessage}>
                             <input
-                                className="w-full p-4 h-12 bg-zinc-400 dark:bg-zinc-900 dark:text-white text-black placeholder-zinc-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Type your message here..."
+                                className="w-full md:w-auto p-4 h-12 bg-zinc-400 dark:bg-zinc-900 dark:text-white text-black placeholder-zinc-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Edit your message..."
                                 value={chatEditMessage.content}
                                 onChange={(e) => setChatEditMessage(prevMessage => ({ ...prevMessage, content: e.target.value }))}
                             />
-                            <div className="space-x-4">
+                            <div className="flex items-center space-x-4 mt-4 md:mt-0">
                                 <button
-                                    className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-blue-600 transition-transform"
+                                    className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg hover:bg-blue-600 transition-transform"
                                     type="submit"
                                 >
                                     Save
                                 </button>
                                 <button
-                                    className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-red-600 transition-transform"
+                                    className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg hover:bg-red-600 transition-transform"
                                     onClick={cancelEditMessage}
                                 >
                                     Cancel
