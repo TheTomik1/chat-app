@@ -97,6 +97,13 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             });
 
             if (sendMessageResponse.status === 201 && socket) {
+                const chatId = sendMessageResponse.data.chatId;
+                setCurrentChat(prevChat => ({ ...prevChat, _id: chatId }));
+
+                fetchAllowedChats();
+
+                socket.emit("join-chat", chatId);
+
                 socket.emit("send-message", {
                     sender: loggedInUser.userName,
                     content: currentChatNewMessage,
@@ -170,8 +177,6 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         setSocket(newSocket);
 
         if (newSocket) {
-            console.log(allowedChats);
-
             newSocket.on('connect', () => {
                 if (allowedChats && Array.isArray(allowedChats)) {
                     newSocket.emit("authenticate", { allowedChats: allowedChats.map(chat => chat._id), userName: loggedInUser.userName });

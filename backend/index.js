@@ -37,7 +37,12 @@ io.on("connection", (socket) => {
         }
         socket.userAllowedChats = authData.allowedChats;
         socket.user = authData.userName;
+
+        socket.userAllowedChats.forEach(chatId => {
+            socket.join(chatId);
+        });
     });
+
 
     socket.on("join-chat", (chatId) => {
         console.log("Joining chat:", chatId);

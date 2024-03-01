@@ -214,6 +214,12 @@ router.post("/send-message", authMiddleware, async (req, res) => {
 
         if (!chat) {
             chat = await chatDB.create({ participants, messages: [{ sender: req.user.id, content: message }] });
+
+            req.io.to(chat._id).emit("join-chat", chat._id);
+        } else {
+            chat.messages.push({ sender: req.user.id, content: message });
+            chat.updatedAt = new Date();
+            await chat.save();
         }
 
         req.io.to(chat._id).emit('new-message', {
@@ -222,7 +228,7 @@ router.post("/send-message", authMiddleware, async (req, res) => {
             timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
         });
 
-        return res.status(201).json({ message: 'Message sent.' });
+        return res.status(201).json({ message: 'Message sent.', chatId: chat._id });
     } catch (e) {
         console.error(e);
         return res.status(500).json({ message: 'Internal server error.' });
