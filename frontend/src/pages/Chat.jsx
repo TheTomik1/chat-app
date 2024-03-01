@@ -52,7 +52,11 @@ const Chat = () => {
     }
 
     function findSecondParticipant(participants) {
-        return participants.find(participant => participant !== loggedInUser.userName);
+        if (participants.length === 1) {
+            return "Participant left."
+        }
+
+        return "Chat with " + participants.find(participant => participant !== loggedInUser.userName);
     }
 
     useEffect(() => {
@@ -76,7 +80,7 @@ const Chat = () => {
                     <div className="space-y-4">
                         {previousChats.map((chat, index) => (
                             <div key={index} className="bg-white dark:bg-zinc-800 p-6 w-1/2 rounded-lg shadow-md hover:cursor-pointer hover:scale-105 transition-transform">
-                                <p className="text-gray-800 text-2xl dark:text-white font-semibold">{chat.participants.length > 2 ? "Group chat" : `Chat with ${findSecondParticipant(chat.participants)}`}</p>
+                                <p className="text-gray-800 text-2xl dark:text-white font-semibold">{chat.participants.length > 2 ? "Group chat" : findSecondParticipant(chat.participants)}</p>
                                 {chat.participants.length > 2 && (
                                     <p className="text-gray-600 dark:text-gray-400 text-lg">Participants: {chat.participants.filter(user => user !== loggedInUser.userName).join(', ')}</p>
                                 )}
@@ -124,7 +128,7 @@ const Chat = () => {
             <div className="mt-8">
                 {Object.keys(currentChat).length > 0 ? (
                     <>
-                        <h2 className="text-4xl text-gray-800 dark:text-white font-semibold mb-4">{currentChat.participants.length > 2 ? "Group chat" : `Chat with ${findSecondParticipant(currentChat.participants)}`}</h2>
+                        <h2 className="text-4xl text-gray-800 dark:text-white font-semibold mb-4">{currentChat.participants.length > 2 ? "Group chat" : findSecondParticipant(currentChat.participants)}</h2>
                         {currentChat.participants.length > 2 && (
                             <>
                                 <p className="text-gray-600 dark:text-gray-400 text-lg">Participants: {currentChat.participants.filter(user => user !== loggedInUser.userName).join(', ')}</p>
