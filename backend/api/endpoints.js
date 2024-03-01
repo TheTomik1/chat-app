@@ -308,16 +308,15 @@ router.post("/send-message", authMiddleware, async (req, res) => {
             timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
         });
 
-        return res.status(201).json({ message: 'Message sent.', chatId: chat._id });
+        return res.status(201).json({ message: 'Message sent.', chatId: chat._id, messageId: chat.messages[chat.messages.length - 1]._id });
     } catch (e) {
-        console.error(e);
         return res.status(500).json({ message: 'Internal server error.' });
     }
 });
 
 router.post("/edit-message", authMiddleware, async(req, res) => {
     try {
-        const { participants, message, messageId } = req.body;
+        const { participants, message, messageId,  } = req.body;
 
         if (!Array.isArray(participants) || participants.length === 0 || !message || !messageId) {
             return res.status(400).json({ message: 'Invalid body.' });
@@ -340,7 +339,7 @@ router.post("/edit-message", authMiddleware, async(req, res) => {
             edited: true,
         });
 
-        return res.status(200).json({ message: 'Message edited.' });
+        return res.status(201).json({ message: 'Message edited.' });
     } catch (e) {
         console.error(e);
         return res.status(500).json({ message: 'Internal server error.' });
@@ -367,7 +366,7 @@ router.post("/delete-message", authMiddleware, async(req, res) => {
 
         req.io.to(chat._id).emit('deleted-message', messageId);
 
-        return res.status(200).json({ message: 'Message deleted.' });
+        return res.status(201).json({ message: 'Message deleted.' });
     } catch (e) {
         console.error(e);
         return res.status(500).json({ message: 'Internal server error.' });

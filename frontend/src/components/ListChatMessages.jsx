@@ -29,7 +29,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     const [currentChatHistory, setCurrentChatHistory] = useState([]);
     const [currentChatProfilePictures, setCurrentChatProfilePictures] = useState({});
     const [currentChatNewMessage, setCurrentChatNewMessage] = useState("");
-    const [currentChatEditMessage, setCurrentChatEditMessage] = useState(null);
+    const [chatEditMessage, setChatEditMessage] = useState(null);
     const [displayedMessages, setDisplayedMessages] = useState(10);
 
     const [invitedUser, setInvitedUser] = useState([]);
@@ -161,6 +161,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                     content: currentChatNewMessage,
                     timestamp: new Date().toISOString(),
                     chatId: currentChat._id,
+                    messageId: sendMessageResponse.data.messageId,
                 });
 
                 setCurrentChatNewMessage("");
@@ -171,30 +172,38 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     }
 
     async function editMessage(e) {
-        // Edit message in backend and emit to socket
         e.preventDefault();
 
         try {
             const editMessageResponse = await axios.post("edit-message", {
                 participants: currentChat.participants,
-                message: currentChatEditMessage.content,
-                messageId: currentChatEditMessage._id,
+                message: chatEditMessage.content,
+                messageId: chatEditMessage._id || chatEditMessage.messageId,
             });
 
             if (editMessageResponse.status === 201 && socket) {
                 socket.emit("edit-message", {
-                    messageId: currentChatEditMessage._id,
-                    content: currentChatEditMessage.content,
+                    messageId: chatEditMessage._id,
+                    content: chatEditMessage.content,
                     timestamp: new Date().toISOString(),
                     chatId: currentChat._id,
                 });
 
-                setCurrentChatEditMessage(null);
+                setChatEditMessage(null);
             }
         } catch (e) {
             toast("Failed to edit message.", { type: "error" });
         }
     }
+
+
+    const startEditMessage = (message) => {
+        setChatEditMessage(message);
+    };
+
+    const cancelEditMessage = () => {
+        setChatEditMessage(null);
+    };
 
     async function deleteMessage(messageId) {
         // Delete message in backend and emit to socket
@@ -291,7 +300,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                                 {loggedInUser.userName === message.sender && (
                                     <>
                                         <FaEdit className="text-blue-500 hover:text-blue-600 transition-transform no-select"
-                                                onClick={() => setCurrentChatEditMessage(message)}/>
+                                                onClick={() => startEditMessage(message)}/>
                                         <FaTrash className="text-red-500 hover:text-red-600 transition-transform"
                                                 onClick={() => deleteMessage(message._id)}/>
                                     </>
@@ -301,13 +310,13 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                             </div>
                         </div>
                     </div>
-                    {currentChatEditMessage !== null && currentChatEditMessage._id === message._id && (
+                    {chatEditMessage && chatEditMessage._id === message._id && (
                         <form className="mt-4" onSubmit={editMessage}>
                             <input
                                 className="w-full p-4 h-12 bg-zinc-400 dark:bg-zinc-900 dark:text-white text-black placeholder-zinc-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="Type your message here..."
-                                value={currentChatEditMessage.content}
-                                onChange={(e) => setCurrentChatEditMessage(prevMessage => ({ ...prevMessage, content: e.target.value }))}
+                                value={chatEditMessage.content}
+                                onChange={(e) => setChatEditMessage(prevMessage => ({ ...prevMessage, content: e.target.value }))}
                             />
                             <div className="space-x-4">
                                 <button
@@ -318,7 +327,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                                 </button>
                                 <button
                                     className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-red-600 transition-transform"
-                                    onClick={() => setCurrentChatEditMessage(null)}
+                                    onClick={cancelEditMessage}
                                 >
                                     Cancel
                                 </button>
