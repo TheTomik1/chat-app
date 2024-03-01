@@ -205,6 +205,31 @@ router.post("/invite-user", authMiddleware, async(req, res) => {
     }
 });
 
+router.post("/leave-chat", authMiddleware, async(req, res) => {
+    try {
+        const { participants, chatId } = req.body;
+        if (!chatId) {
+            return res.status(400).send({ message: 'Invalid body.' });
+        }
+
+        const chat = await chatDB.findOne({ _id: chatId, participants: req.user.id });
+
+        if (!chat) {
+            return res.status(404).send({ message: 'Chat not found.' });
+        }
+
+        if (chat.participants.length === 1) {
+            await chatDB.deleteOne({ _id: chatId });
+        } else {
+            await chatDB.updateOne({ _id: chatId }, { $pull: { participants: req.user.id } });
+        }
+
+        await res.status(201).send({ message: 'User left chat.' });
+    } catch (e) {
+        await res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
 router.post("/upload-profile-picture", authMiddleware, async(req, res) => {
     try {
         upload.single('file')(req, res, async (err) => {

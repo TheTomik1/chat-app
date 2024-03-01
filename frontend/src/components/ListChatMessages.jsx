@@ -103,6 +103,24 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         }
     }
 
+    async function leaveChat(e) {
+        e.preventDefault();
+
+        try {
+            const leaveChatResponse = await axios.post("leave-chat", {
+                participants: currentChat.participants,
+                chatId: currentChat._id,
+            });
+
+            if (leaveChatResponse.status === 201) {
+                toast("Left chat successfully.", { type: "success" });
+                setCurrentChat({});
+            }
+        } catch (e) {
+            toast("Failed to leave chat.", { type: "error" });
+        }
+    }
+
     async function sendMessage(e) {
         // Send message to backend and emit to socket
         e.preventDefault();
@@ -307,24 +325,41 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                     value={currentChatNewMessage}
                     onChange={(e) => setCurrentChatNewMessage(e.target.value)}
                 />
-                <div className="space-x-4">
-                    <button
-                        className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-blue-600 transition-transform"
-                        type="submit"
-                    >
-                        Send
-                    </button>
-                    <button
-                        className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-red-600 transition-transform"
-                        onClick={() => setCurrentChat({})}
-                    >
-                        Close Chat
-                    </button>
-                    <button
-                        className="bg-green-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-green-600 transition-transform"
-                        onClick={handleInvitation}>
-                        Invite User
-                    </button>
+                <div className="flex flex-col md:flex-row md:justify-between mt-4">
+                    <div className="space-y-4 space-x-4 md:space-y-0 md:space-x-4 md:flex md:items-center">
+                        <button
+                            className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg mt-4 md:mt-0 hover:bg-blue-600 transition-transform"
+                            type="submit"
+                        >
+                            Send
+                        </button>
+                        <button
+                            className="bg-green-500 text-white px-4 py-2 font-bold rounded-lg mt-4 md:mt-0 hover:bg-green-600 transition-transform"
+                            onClick={handleInvitation}
+                        >
+                            Invite User
+                        </button>
+                    </div>
+                    <div className="flex items-end space-x-4">
+                        <button
+                            className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 md:mt-0 hover:bg-red-600 transition-transform"
+                            onClick={() => setCurrentChat({})}
+                        >
+                            Close Chat
+                        </button>
+                        <button
+                            className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 md:mt-0 hover:bg-red-600 transition-transform"
+                            onClick={(e) => leaveChat(e)}
+                        >
+                            Leave Chat
+                        </button>
+                        <button
+                            className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 md:mt-0 hover:bg-red-600 transition-transform"
+                            onClick={null}
+                        >
+                            Delete Chat
+                        </button>
+                    </div>
                 </div>
             </form>
             {invitationFormOpenend && (
