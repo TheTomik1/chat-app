@@ -22,11 +22,12 @@ import './styles.css';
 
 function App() {
     // TODO: First message in new chat does not get received and needs fix.
+    // TODO: If the group chat exists, the user should be able to still have separate chat with the same user.
+    // TODO: Fix message editing and deleting.
     // TODO: Add reactions.
     // TODO: Add support for images, videos and voice messages.
     // TODO: Add support for handling chat deletion and leaving chats.
-    // TODO: Add support for user is typing feature.
-    // TODO: Add support for user presence and bell with missed messages.
+    // TODO: Add support for bell with missed messages.
 
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [cookies, setCookie] = useCookies(['darkMode']);

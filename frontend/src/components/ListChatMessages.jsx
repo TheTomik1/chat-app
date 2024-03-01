@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { format, isToday, isYesterday, parseISO } from "date-fns";
 import axios from "axios";
 import socketIOClient from "socket.io-client";
@@ -23,7 +22,6 @@ function formatMessageTimestamp(timestamp) {
 
 const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     const { loggedInUser } = useAuth();
-    const { navigate } = useNavigate();
 
     const [socket, setSocket] = useState(null);
 
@@ -65,34 +63,23 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
 
     async function fetchProfilePictures(participants) {
         try {
-            const fetchPromises = participants.map(async participant => {
-                if (!currentChatProfilePictures[participant]) {
-                    const response = await axios.get("profile-picture", {
-                        params: { userName: participant },
-                        responseType: "blob",
-                    });
-                    const url = URL.createObjectURL(response.data);
-                    return { participant, url };
-                }
-                return null;
-            });
-
-            const results = await Promise.all(fetchPromises);
-            const newPictures = results.filter(result => result !== null);
-
-            setCurrentChatProfilePictures(prevPictures => {
-                const updatedPictures = { ...prevPictures };
-                newPictures.forEach(({ participant, url }) => {
-                    updatedPictures[participant] = url;
+            for (const participant of participants) {
+                const response = await axios.get("profile-picture", {
+                    params: { userName: participant },
+                    responseType: "blob",
                 });
-                return updatedPictures;
-            });
-        } catch (error) {
-            // Handle errors
+
+                const url = URL.createObjectURL(response.data);
+                setCurrentChatProfilePictures(prevPictures => ({ ...prevPictures, [participant]: url }));
+            }
+        } catch (e) {
+            // No profile picture found.
         }
     }
 
     async function inviteUser(e, userName) {
+        e.preventDefault();
+
         try {
             const inviteUserResponse = await axios.post("invite-user", {
                 participants: currentChat.participants,
@@ -101,12 +88,16 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             });
 
             if (inviteUserResponse.status === 201) {
+                toast("User invited to chat. Reloading...", { type: "success" });
                 setInvitedUser("");
+
+                await new Promise(r => setTimeout(r, 5000));
+                window.location.reload();
             }
         } catch (e) {
-            if (e.response.data.message === "Chat with invitee already exists.") {
+            if (e.response?.data.message === "Chat with invitee already exists.") {
                 toast("User is already in chat.", { type: "error" });
-            } else if (e.response.data.message === "Invitee not found.") {
+            } else if (e.response?.data.message === "Invitee not found.") {
                 toast("User not found.", { type: "error" });
             }
         }

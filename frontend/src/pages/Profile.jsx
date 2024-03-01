@@ -127,6 +127,7 @@ const Profile = () => {
                 toast("Profile picture updated successfully.", { type: "success" });
                 await new Promise(r => setTimeout(r, 5000));
                 navigate("/chat");
+                window.location.reload();
             }
         } catch (error) {
             console.error(error);
