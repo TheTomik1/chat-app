@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import { format } from "date-fns";
@@ -6,7 +6,7 @@ import axios from "axios";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import {HiMoon, HiSun} from "react-icons/hi";
+import { HiMoon, HiSun } from "react-icons/hi";
 
 import Home from "./pages/Home";
 import Chat from "./pages/Chat";
@@ -26,7 +26,6 @@ function App() {
     // TODO: Fix message editing and deleting.
     // TODO: Add reactions.
     // TODO: Add support for images, videos and voice messages.
-    // TODO: Add support for bell with missed messages.
 
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [cookies, setCookie] = useCookies(['darkMode']);
@@ -42,6 +41,11 @@ function App() {
     }, []);
 
     useEffect(() => {
+        if (cookies.darkMode === undefined) {
+            setCookie('darkMode', 'true', { path: '/', maxAge: 60 * 60 * 24 * 400 });
+            setIsDarkMode(true)
+        }
+
         const title = "Chat App";
         const matchedRoute = routes.find(route => route.path === location.pathname);
         const componentName = matchedRoute ? getComponentName(matchedRoute.element) : "Not Found";
