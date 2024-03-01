@@ -26,7 +26,6 @@ function App() {
     // TODO: Fix message editing and deleting.
     // TODO: Add reactions.
     // TODO: Add support for images, videos and voice messages.
-    // TODO: Add support for handling chat deletion and leaving chats.
     // TODO: Add support for bell with missed messages.
 
     const [isDarkMode, setIsDarkMode] = useState(true);

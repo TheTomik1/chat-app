@@ -121,6 +121,23 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         }
     }
 
+    async function deleteChat(e) {
+        e.preventDefault();
+
+        try {
+            const deleteChatResponse = await axios.post("delete-chat", {
+                chatId: currentChat._id,
+            });
+
+            if (deleteChatResponse.status === 201) {
+                toast("Chat deleted successfully.", { type: "success" });
+                setCurrentChat({});
+            }
+        } catch (e) {
+            toast("Failed to delete chat.", { type: "error" });
+        }
+    }
+
     async function sendMessage(e) {
         // Send message to backend and emit to socket
         e.preventDefault();
@@ -347,18 +364,22 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                         >
                             Close Chat
                         </button>
-                        <button
-                            className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 md:mt-0 hover:bg-red-600 transition-transform"
-                            onClick={(e) => leaveChat(e)}
-                        >
-                            Leave Chat
-                        </button>
-                        <button
-                            className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 md:mt-0 hover:bg-red-600 transition-transform"
-                            onClick={null}
-                        >
-                            Delete Chat
-                        </button>
+                        {currentChatHistory.length > 0 && (
+                            <>
+                                <button
+                                    className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 md:mt-0 hover:bg-red-600 transition-transform"
+                                    onClick={(e) => leaveChat(e)}
+                                >
+                                    Leave Chat
+                                </button>
+                                <button
+                                    className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 md:mt-0 hover:bg-red-600 transition-transform"
+                                    onClick={(e) => deleteChat(e)}
+                                >
+                                    Delete Chat
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             </form>

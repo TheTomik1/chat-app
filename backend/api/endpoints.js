@@ -230,6 +230,27 @@ router.post("/leave-chat", authMiddleware, async(req, res) => {
     }
 });
 
+router.post("/delete-chat", authMiddleware, async(req, res) => {
+    try {
+        const { chatId } = req.body;
+        if (!chatId) {
+            return res.status(400).send({ message: 'Invalid body.' });
+        }
+
+        const chat = await chatDB.findOne({ _id: chatId, participants: req.user.id });
+
+        if (!chat) {
+            return res.status(404).send({ message: 'Chat not found.' });
+        }
+
+        await chatDB.deleteOne({ _id: chatId });
+
+        await res.status(201).send({ message: 'Chat deleted.' });
+    } catch (e) {
+        await res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
 router.post("/upload-profile-picture", authMiddleware, async(req, res) => {
     try {
         upload.single('file')(req, res, async (err) => {
