@@ -43,11 +43,11 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-      if (socket.user) {
-        console.log("User disconnected:", socket.user);
-      } else {
-        console.log("An unauthorized user disconnected");
-      }
+        if (socket.user) {
+            console.log("User disconnected:", socket.user);
+        } else {
+            console.log("An unauthorized user disconnected");
+        }
     });
 
     socket.on("send-message", (message) => {

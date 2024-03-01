@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 
 import RegistrationForm from "../components/RegistrationForm";
 import LoginForm from "../components/LoginForm";

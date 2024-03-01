@@ -59,19 +59,33 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
 
     async function fetchProfilePictures(participants) {
         try {
-            for (const participant of participants) {
-                const response = await axios.get("profile-picture", {
-                    params: { userName: participant },
-                    responseType: "blob",
-                });
+            const fetchPromises = participants.map(async participant => {
+                if (!currentChatProfilePictures[participant]) {
+                    const response = await axios.get("profile-picture", {
+                        params: { userName: participant },
+                        responseType: "blob",
+                    });
+                    const url = URL.createObjectURL(response.data);
+                    return { participant, url };
+                }
+                return null;
+            });
 
-                const url = URL.createObjectURL(response.data);
-                setCurrentChatProfilePictures(prevPictures => ({ ...prevPictures, [participant]: url }));
-            }
+            const results = await Promise.all(fetchPromises);
+            const newPictures = results.filter(result => result !== null);
+
+            setCurrentChatProfilePictures(prevPictures => {
+                const updatedPictures = { ...prevPictures };
+                newPictures.forEach(({ participant, url }) => {
+                    updatedPictures[participant] = url;
+                });
+                return updatedPictures;
+            });
         } catch (error) {
-            // No profile picture found.
+            // Handle errors
         }
     }
+
 
     async function sendMessage(e) {
         e.preventDefault();
@@ -211,7 +225,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                                         <FaEdit className="text-blue-500 hover:text-blue-600 transition-transform no-select"
                                                 onClick={() => setCurrentChatEditMessage(message)}/>
                                         <FaTrash className="text-red-500 hover:text-red-600 transition-transform"
-                                                    onClick={() => deleteMessage(message._id)}/>
+                                                onClick={() => deleteMessage(message._id)}/>
                                     </>
                                 )}
 
