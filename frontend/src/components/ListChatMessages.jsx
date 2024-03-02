@@ -5,7 +5,7 @@ import socketIOClient from "socket.io-client";
 import { toast } from "react-toastify";
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 
-import { FaEdit, FaTrash, FaGrinBeam } from "react-icons/fa";
+import {FaEdit, FaTrash, FaGrinBeam, FaPaperclip} from "react-icons/fa";
 
 import { useAuth } from "../context/Auth";
 import { usePageTheme } from "../context/PageTheme";
@@ -41,6 +41,8 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
 
     const [addEmojiMessage, setAddEmojiMessage] = useState(null);
     const [addEmoji, setAddEmoji] = useState(false);
+
+    const [attachment, setAttachment] = useState(null);
 
     async function fetchChatHistory() {
         try {
@@ -146,7 +148,6 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     }
 
     async function sendMessage(e) {
-        // Send message to backend and emit to socket
         e.preventDefault();
 
         try {
@@ -371,6 +372,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                                     <>
                                         <FaEdit className="text-blue-500 hover:text-blue-600 transition-transform no-select" onClick={() => startEditMessage(message)} />
                                         <FaTrash className="text-red-500 hover:text-red-600 transition-transform no-select" onClick={() => deleteMessage(message._id || message.messageId)} />
+                                        <FaPaperclip className="text-green-500 hover:text-green-600 transition-transform no-select" onClick={() => setAttachment(message)} />
                                     </>
                                 )}
                                 <FaGrinBeam className="text-yellow-500 hover:text-yellow-600 transition-transform no-select" onClick={() => setAddEmojiMessage(message)} />

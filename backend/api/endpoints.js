@@ -18,7 +18,7 @@ const secretKey = process.env.JWT_SECRET;
 
 router.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
-const storage = multer.diskStorage({
+const profilePicturesStorage  = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, path.join(__dirname, 'profile-pictures'));
     },
@@ -26,7 +26,17 @@ const storage = multer.diskStorage({
         cb(null, `${req.user.id}-${file.originalname}`);
 }});
 
-const upload = multer({ storage });
+const uploadProfilePicture = multer({ profilePicturesStorage  });
+
+const attachmentStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, 'attachments'));
+    },
+    filename: function (req, file, cb) {
+        cb(null, `${req.user.id}-${file.originalname}`);
+}});
+
+const uploadAttachment = multer({ attachmentStorage });
 
 router.post("/register", async(req, res) => {
     try {
@@ -276,7 +286,7 @@ router.post("/delete-chat", authMiddleware, async(req, res) => {
 
 router.post("/upload-profile-picture", authMiddleware, async(req, res) => {
     try {
-        upload.single('file')(req, res, async (err) => {
+        uploadProfilePicture.single('file')(req, res, async (err) => {
             if (err instanceof multer.MulterError) {
                 return res.status(400).send({ message: 'Invalid file.' });
             } else if (err) {
