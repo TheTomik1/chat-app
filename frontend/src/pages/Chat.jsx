@@ -135,7 +135,7 @@ const Chat = () => {
                     </button>
                     {createGroupChat && (
                         <div className="w-1/2 mt-4">
-                        <CreateGroupChat onClose={() => setCreateGroupChat(false)} />
+                            <CreateGroupChat onClose={() => setCreateGroupChat(false)} />
                         </div>
                     )}
                 </div>

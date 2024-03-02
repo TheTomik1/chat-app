@@ -22,7 +22,6 @@ import { PageThemeProvider } from "./context/PageTheme";
 import './styles.css';
 
 function App() {
-    // TODO: Add reactions.
     // TODO: Add support for images, videos and voice messages.
 
     const [isDarkMode, setIsDarkMode] = useState(true);

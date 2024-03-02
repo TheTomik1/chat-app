@@ -295,7 +295,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                 if (allowedChats && Array.isArray(allowedChats)) {
                     newSocket.emit("authenticate", { allowedChats: allowedChats.map(chat => chat._id), userName: loggedInUser.userName });
                 } else {
-                    console.log("Allowed chats not available or invalid.");
+                    // No allowed chats found
                 }
             });
 
@@ -313,6 +313,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             });
 
             newSocket.on('deleted-message', (deletedMessageId) => {
+                console.log("Deleted message:", deletedMessageId); // The code does not work without this for whatever reason
                 setCurrentChatHistory(prevHistory => prevHistory.filter(message => message._id || message.messageId !== deletedMessageId));
             });
 
@@ -361,7 +362,6 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                             {message.emojis && message.emojis.length > 0 && (
                                 <div className="flex items-center space-x-2">
                                     {message.emojis.map((reaction, index) => (
-                                        console.log("Reaction:", reaction),
                                         <p key={index} className="text-2xl bg-blue-300 bg-opacity-70 border-blue-600 border-2 rounded-xl text-black dark:text-white p-1">{reaction.emoji} {reaction.count}</p>
                                     ))}
                                 </div>

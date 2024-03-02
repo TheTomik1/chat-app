@@ -73,37 +73,38 @@ const CreateGroupChat = ({ onClose }) => {
     }
 
     return (
-        <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg">
+        <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg mx-auto">
             <h1 className="text-3xl font-bold text-center text-black dark:text-white mb-4">Create Group Chat</h1>
             <p className="text-gray-800 dark:text-white text-lg mb-4">Select users to add to the group chat</p>
             <input
-                className="w-full p-4 h-12 bg-zinc-200 dark:bg-zinc-900 text-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-4 h-12 bg-zinc-200 dark:bg-zinc-900 text-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
                 placeholder="Type the username of the user you want to invite..."
                 value={addedUser}
                 onChange={(e) => setAddedUser(e.target.value)}
             />
+            <br/>
             <button
-                className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-blue-600 transition-transform"
+                className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg mb-4 hover:bg-blue-600"
                 onClick={() => addSelectedUser(addedUser)}
             >
                 Add User
             </button>
-            <div className="mt-4">
+            <div className="mb-4">
                 {selectedUsers.map((user, index) => (
-                    <div key={index} className="bg-yellow-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-yellow-600 transition-transform">
-                        {user}
+                    <div key={index} className="bg-yellow-500 text-white px-4 py-2 font-bold rounded-lg mt-2 flex justify-between items-center">
+                        <span>{user}</span>
                         <FaTrash onClick={() => setSelectedUsers(selectedUsers.filter((selectedUser) => selectedUser !== user))} />
                     </div>
                 ))}
             </div>
-            <div className="space-x-4 mt-4">
+            <div className="flex flex-col sm:flex-row gap-2">
                 <button
-                    className="bg-green-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-green-600 transition-transform"
+                    className="bg-green-500 text-white px-4 py-2 font-bold rounded-lg mb-2 sm:mb-0 hover:bg-green-600"
                     onClick={createGroupChat}>
                     Create Group Chat
                 </button>
                 <button
-                    className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-red-600 transition-transform"
+                    className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg hover:bg-red-600"
                     onClick={onClose}>
                     Cancel
                 </button>
