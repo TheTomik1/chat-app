@@ -33,6 +33,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     const [currentChatProfilePictures, setCurrentChatProfilePictures] = useState({});
     const [currentChatNewMessage, setCurrentChatNewMessage] = useState("");
     const [chatEditMessage, setChatEditMessage] = useState(null);
+    const [editingMessageId, setEditingMessageId] = useState(null);
     const [displayedMessages, setDisplayedMessages] = useState(10);
 
     const [invitedUser, setInvitedUser] = useState([]);
@@ -203,10 +204,12 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     }
 
     const startEditMessage = (message) => {
+        setEditingMessageId(message._id || message.messageId);
         setChatEditMessage(message);
     };
 
     const cancelEditMessage = () => {
+        setEditingMessageId(null);
         setChatEditMessage(null);
     };
 
@@ -326,7 +329,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                             </div>
                         </div>
                     </div>
-                    {chatEditMessage && (chatEditMessage._id === message._id || chatEditMessage.messageId === message._id) && (
+                    {chatEditMessage && editingMessageId === (message._id || message.messageId) && (
                         <form className="mt-4 flex flex-col md:flex-row md:items-center md:justify-between" onSubmit={editMessage}>
                             <input
                                 className="w-full md:w-auto p-4 h-12 bg-zinc-400 dark:bg-zinc-900 dark:text-white text-black placeholder-zinc-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -437,6 +440,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                     <div className="bg-white dark:bg-zinc-800 p-4 sm:p-8 rounded-lg shadow-lg max-w-md flex flex-col items-center">
                         <EmojiPicker
                             onEmojiClick={(emoji) => addReaction(emoji)}
+                            emojiStyle={"twitter"}
                             theme={isDarkMode ? Theme.DARK : Theme.LIGHT}
                         >
                         </EmojiPicker>
