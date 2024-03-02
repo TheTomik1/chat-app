@@ -4,6 +4,7 @@ import axios from "axios";
 import ListChatMessages from "../components/ListChatMessages";
 
 import { useAuth } from "../context/Auth";
+import CreateGroupChat from "../components/CreateGroupChat";
 
 const Chat = () => {
     const { loggedInUser } = useAuth();
@@ -14,6 +15,8 @@ const Chat = () => {
     const [currentChat, setCurrentChat] = useState({});
 
     const [userDetails, setUserDetails] = useState({});
+
+    const [createGroupChat, setCreateGroupChat] = useState(false);
 
     async function fetchUsers() {
         try {
@@ -99,6 +102,16 @@ const Chat = () => {
                             </div>
                         ))}
                     </div>
+                    <button
+                        className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-blue-600 transition-transform"
+                        onClick={() => setCreateGroupChat(true)}>
+                        Create group chat
+                    </button>
+                    {createGroupChat && (
+                        <div className="w-1/2 mt-4">
+                        <CreateGroupChat onClose={() => setCreateGroupChat(false)} />
+                        </div>
+                    )}
                 </div>
 
                 <div className="col-span-1 md:col-span-1">

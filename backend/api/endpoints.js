@@ -205,6 +205,29 @@ router.post("/invite-user", authMiddleware, async(req, res) => {
     }
 });
 
+router.post("/create-group-chat", authMiddleware, async(req, res) => {
+    try {
+        const { participants } = req.body;
+
+        if (!Array.isArray(participants) || participants.length === 0) {
+            return res.status(400).send({ message: 'Invalid body.' });
+        }
+
+        const chat = await chatDB.findOne({ participants: { $all: participants } });
+
+        if (chat) {
+            return res.status(400).send({ message: 'Chat already exists.' });
+        }
+
+        await chatDB.create({ participants });
+
+        await res.status(201).send({ message: 'Group chat created.' });
+    } catch (e) {
+        console.error(e);
+        await res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
 router.post("/leave-chat", authMiddleware, async(req, res) => {
     try {
         const { participants, chatId } = req.body;

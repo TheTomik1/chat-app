@@ -378,12 +378,14 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                         >
                             Send
                         </button>
-                        <button
-                            className="bg-green-500 text-white px-4 py-2 font-bold rounded-lg mt-4 md:mt-0 hover:bg-green-600 transition-transform"
-                            onClick={handleInvitation}
-                        >
-                            Invite User
-                        </button>
+                        {currentChat.participants.length > 2 && currentChatHistory.length > 0 && (
+                            <button
+                                className="bg-green-500 text-white px-4 py-2 font-bold rounded-lg mt-4 md:mt-0 hover:bg-green-600 transition-transform"
+                                onClick={handleInvitation}
+                            >
+                                Invite User
+                            </button>
+                        )}
                     </div>
                     <div className="flex items-end space-x-4">
                         <button
