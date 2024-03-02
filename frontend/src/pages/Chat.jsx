@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useCookies } from "react-cookie";
 import axios from "axios";
 
 import ListChatMessages from "../components/ListChatMessages";
@@ -9,6 +10,7 @@ import {toast} from "react-toastify";
 
 const Chat = () => {
     const { loggedInUser } = useAuth();
+    const [cookies, setCookie] = useCookies(["chatMessages"]);
 
     const [users, setUsers] = useState([]);
     const [previousChats, setPreviousChats] = useState([]);
@@ -122,6 +124,7 @@ const Chat = () => {
                                         Chat
                                     </button>
                                 </div>
+                                <p className="text-gray-600 dark:text-gray-400 text-lg">Messages: {chat.messages.length}</p>
                             </div>
                         ))}
                     </div>
@@ -155,6 +158,7 @@ const Chat = () => {
                                         Chat
                                     </button>
                                 </div>
+                                <p className="text-gray-600 dark:text-gray-400 text-lg">Messages: {previousChats.find(chat => chat.participants.includes(user.userName))?.messages.length || 0}</p>
                             </div>
                         ))}
                     </div>
