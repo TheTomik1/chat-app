@@ -174,6 +174,10 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                 setCurrentChatNewMessage("");
             }
         } catch (e) {
+            if (e.response?.status === 500) {
+                toast("You must create a chat before sending a message.", { type: "error" });
+                return;
+            }
             toast("Failed to send message.", { type: "error" });
         }
     }

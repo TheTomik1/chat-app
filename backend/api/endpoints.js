@@ -314,16 +314,9 @@ router.post("/send-message", authMiddleware, async (req, res) => {
         }
 
         let chat = await chatDB.findOne({ participants: { $all: participants } });
-
-        if (!chat) {
-            chat = await chatDB.create({ participants, messages: [{ sender: req.user.id, content: message }] });
-
-            req.io.to(chat._id).emit("join-chat", chat._id);
-        } else {
-            chat.messages.push({ sender: req.user.id, content: message });
-            chat.updatedAt = new Date();
-            await chat.save();
-        }
+        chat.messages.push({ sender: req.user.id, content: message });
+        chat.updatedAt = new Date();
+        await chat.save();
 
         req.io.to(chat._id).emit('new-message', {
             sender: req.user.id,

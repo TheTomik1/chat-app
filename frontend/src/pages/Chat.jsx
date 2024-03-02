@@ -57,6 +57,13 @@ const Chat = () => {
 
     async function createChat(participant) {
         try {
+            const existingChat = previousChats.find(chat => chat.participants.includes(participant));
+
+            if (existingChat) {
+                setCurrentChat(existingChat);
+                return;
+            }
+
             const createChatResponse = await axios.post('create-chat', {
                 participants: [loggedInUser.userName, participant]
             });
@@ -155,7 +162,7 @@ const Chat = () => {
             </div>
 
             <div className="mt-8">
-                {Object.keys(currentChat).length > 0 ? (
+                {currentChat && Object.keys(currentChat).length > 0 ? (
                     <>
                         <h2 className="text-4xl text-gray-800 dark:text-white font-semibold mb-4">{currentChat.participants.length > 2 ? "Group chat" : findSecondParticipant(currentChat.participants)}</h2>
                         {currentChat.participants.length > 2 && (
