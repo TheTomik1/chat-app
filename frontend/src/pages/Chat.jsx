@@ -158,7 +158,9 @@ const Chat = () => {
                                         Chat
                                     </button>
                                 </div>
-                                <p className="text-gray-600 dark:text-gray-400 text-lg">Messages: {previousChats.find(chat => chat.participants.includes(user.userName))?.messages.length || 0}</p>
+                                {previousChats.find(chat => chat.participants.includes(user.userName))?.messages.length > 0 && (
+                                    <p className="text-gray-600 dark:text-gray-400 text-lg">Messages: {previousChats.find(chat => chat.participants.includes(user.userName)).messages.length}</p>
+                                )}
                             </div>
                         ))}
                     </div>
