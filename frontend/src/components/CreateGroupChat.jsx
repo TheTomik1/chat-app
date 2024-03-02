@@ -32,7 +32,7 @@ const CreateGroupChat = ({ onClose }) => {
         selectedUsers.push(loggedInUser.userName);
 
         try {
-            const createGroupChatResponse = await axios.post("create-group-chat", {
+            const createGroupChatResponse = await axios.post("create-chat", {
                 participants: selectedUsers
             });
 
@@ -73,7 +73,7 @@ const CreateGroupChat = ({ onClose }) => {
     }
 
     return (
-        <div className="bg-zinc-200 dark:bg-zinc-800 p-4 rounded-lg">
+        <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg">
             <h1 className="text-3xl font-bold text-center text-black dark:text-white mb-4">Create Group Chat</h1>
             <p className="text-gray-800 dark:text-white text-lg mb-4">Select users to add to the group chat</p>
             <input

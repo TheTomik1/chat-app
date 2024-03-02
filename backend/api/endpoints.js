@@ -205,7 +205,7 @@ router.post("/invite-user", authMiddleware, async(req, res) => {
     }
 });
 
-router.post("/create-group-chat", authMiddleware, async(req, res) => {
+router.post("/create-chat", authMiddleware, async(req, res) => {
     try {
         const { participants } = req.body;
 
@@ -216,12 +216,12 @@ router.post("/create-group-chat", authMiddleware, async(req, res) => {
         const chat = await chatDB.findOne({ participants: { $all: participants } });
 
         if (chat) {
-            return res.status(400).send({ message: 'Chat already exists.' });
+            return res.status(400).send({ message: 'Chat already exists.', chat: chat });
         }
 
-        await chatDB.create({ participants });
+        const newChat = await chatDB.create({ participants });
 
-        await res.status(201).send({ message: 'Group chat created.' });
+        await res.status(201).send({ message: 'Chat created.', chat: newChat });
     } catch (e) {
         console.error(e);
         await res.status(500).send({ message: 'Internal server error.' });

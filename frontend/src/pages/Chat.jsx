@@ -5,6 +5,7 @@ import ListChatMessages from "../components/ListChatMessages";
 
 import { useAuth } from "../context/Auth";
 import CreateGroupChat from "../components/CreateGroupChat";
+import {toast} from "react-toastify";
 
 const Chat = () => {
     const { loggedInUser } = useAuth();
@@ -54,6 +55,26 @@ const Chat = () => {
         }
     }
 
+    async function createChat(participant) {
+        try {
+            const createChatResponse = await axios.post('create-chat', {
+                participants: [loggedInUser.userName, participant]
+            });
+
+            if (createChatResponse.status === 201) {
+                toast("Chat created successfully.", { type: "success" });
+                setCurrentChat(createChatResponse.data.chat);
+            }
+        } catch (e) {
+            if (e.response?.data.message === "Chat already exists.") {
+                const chat = previousChats.find(chat => chat.participants.includes(participant));
+
+                setCurrentChat(chat);
+                return;
+            }
+        }
+    }
+
     function findSecondParticipant(participants) {
         if (participants.length === 1) {
             return "Participant left."
@@ -89,11 +110,6 @@ const Chat = () => {
                                 )}
                                 <div className="space-x-4">
                                     <button
-                                        className="bg-green-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-green-600 transition-transform"
-                                        onClick={() => userDetail(chat.participants[0])}>
-                                        View Details
-                                    </button>
-                                    <button
                                         className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-blue-600 transition-transform"
                                         onClick={() => setCurrentChat(chat)}>
                                         Chat
@@ -123,8 +139,8 @@ const Chat = () => {
                                 <div className="space-x-4">
                                     <button
                                         className="bg-green-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-green-600 transition-transform"
-                                        onClick={() => userDetail(user.userName)}>
-                                        View Details
+                                        onClick={() => createChat(user.userName)}>
+                                        Create chat
                                     </button>
                                     <button
                                         className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-blue-600 transition-transform"

@@ -22,7 +22,6 @@ import './styles.css';
 import {PageTheme, PageThemeProvider} from "./context/PageTheme";
 
 function App() {
-    // TODO: First message in new chat does not get received and needs fix.
     // TODO: Add reactions.
     // TODO: Add support for images, videos and voice messages.
 
