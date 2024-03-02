@@ -45,16 +45,11 @@ io.on("connection", (socket) => {
 
 
     socket.on("join-chat", (chatId) => {
-        console.log("Joining chat:", chatId);
-        console.log("User allowed chats:", socket.userAllowedChats);
-
         if (!socket.userAllowedChats || !socket.userAllowedChats.includes(chatId)) {
             socket.emit("join-chat-failure", "You are not authorized to join this chat");
-            console.log("User not allowed to join chat:", chatId);
             return;
         }
 
-        console.log("Joining chat:", chatId);
         socket.join(chatId);
     });
 
@@ -67,24 +62,15 @@ io.on("connection", (socket) => {
     });
 
     socket.on("send-message", (message) => {
-        console.log("Sending message:", message);
-        console.log("User allowed chats:", socket.userAllowedChats);
-
         if (!message || !message.chatId || !socket.userAllowedChats || !socket.userAllowedChats.includes(message.chatId)) {
-            console.log("Invalid message or user not allowed to send message to this chat");
             return;
         }
 
-        console.log("Emitting new-message event");
         io.to(message.chatId).emit("new-message", message); // Broadcasting the new message to all users in the chat
     });
 
     socket.on("edit-message", (editedMessage) => {
-        console.log("Editing message:", editedMessage);
-        console.log("User allowed chats:", socket.userAllowedChats);
-
         if (!editedMessage || !editedMessage.chatId || !socket.userAllowedChats || !socket.userAllowedChats.includes(editedMessage.chatId)) {
-            console.log("Invalid message or user not allowed to edit message in this chat");
             return;
         }
         io.to(editedMessage.chatId).emit("edited-message", editedMessage); // Broadcasting the edited message to all users in the chat
@@ -92,14 +78,17 @@ io.on("connection", (socket) => {
 
     socket.on("delete-message", (messageId, chatId) => {
         if (!chatId || !socket.userAllowedChats || !socket.userAllowedChats.includes(chatId)) {
-            console.log("Invalid chatId or user not allowed to delete message in this chat");
             return;
         }
         io.to(chatId).emit("deleted-message", messageId); // Broadcasting the deleted message to all users in the chat
     });
 
-    socket.on("add-reaction", (reaction) => {
-        // Similar authentication and permission checks for adding reactions
+    socket.on("new-reaction", (reaction) => {
+        if (!reaction || !reaction.chatId || !socket.userAllowedChats || !socket.userAllowedChats.includes(reaction.chatId)) {
+            console.log("Invalid reaction or user not allowed to react in this chat");
+            return;
+        }
+        io.to(reaction.chatId).emit("new-reaction", reaction); // Broadcasting the new reaction to all users in the chat
     });
 
     // Add more event handlers as needed

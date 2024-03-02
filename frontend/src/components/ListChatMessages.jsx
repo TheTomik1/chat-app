@@ -245,11 +245,36 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         }
     }
 
-    const addReaction = (emoji) => {
+    const addReaction = async(emoji) => {
         console.log("Emoji selected:", emoji.emoji);
 
         console.log("Add reaction to message:", addEmojiMessage);
 
+        try {
+            const addReactionResponse = await axios.post("add-reaction", {
+                participants: currentChat.participants,
+                messageId: addEmojiMessage._id || addEmojiMessage.messageId,
+                emoji: emoji.emoji,
+            });
+
+            if (addReactionResponse.status === 201 && socket) {
+                socket.emit("new-reaction", {
+                    messageId: addEmojiMessage._id || addEmojiMessage.messageId,
+                    emoji: emoji.emoji,
+                    timestamp: new Date().toISOString(),
+                    chatId: currentChat._id,
+                });
+
+                setAddEmojiMessage(null);
+            }
+        } catch (e) {
+            if (e.response?.data.message === "Maximum 10 reactions allowed per message.") {
+                toast("Maximum 10 reactions allowed per message.", { type: "error" });
+                return;
+            }
+
+            toast("Failed to add reaction.", { type: "error" });
+        }
     };
 
     useEffect(() => {
@@ -289,6 +314,17 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             newSocket.on('deleted-message', (deletedMessageId) => {
                 setCurrentChatHistory(prevHistory => prevHistory.filter(message => message._id || message.messageId !== deletedMessageId));
             });
+
+            newSocket.on('new-reaction', (reaction) => {
+                setCurrentChatHistory(prevHistory => prevHistory.map(message => {
+                    if (message.messageId === reaction.messageId || message._id === reaction.messageId) {
+                        const updatedEmojis = Array.isArray(message.emojis) ? [...message.emojis] : [];
+                        updatedEmojis.push({ emoji: reaction.emoji, users: [loggedInUser.userName] });
+                        return { ...message, emojis: updatedEmojis };
+                    }
+                    return message;
+                }));
+            });
         }
 
         return () => {
@@ -315,10 +351,11 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                                 )}
                             </div>
                             <p className="text-gray-800 dark:text-white">{message.content}</p>
+                            {console.log("Message:", message)}
                             {message.emojis && message.emojis.length > 0 && (
                                 <div className="flex items-center space-x-2">
                                     {message.emojis.map((reaction, index) => (
-                                        <p key={index} className="text-2xl">{reaction.emoji}</p>
+                                        <p key={index} className="text-2xl bg-blue-300 bg-opacity-70 border-blue-600 border-2 rounded-xl">{reaction.emoji}</p>
                                     ))}
                                 </div>
                             )}

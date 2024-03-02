@@ -139,6 +139,8 @@ router.get("/chat-history", authMiddleware, async(req, res) => {
 
     const chatHistory = await chatDB.findOne({ participants: { $all: participants } });
 
+    console.log(chatHistory);
+
     if (!chatHistory) {
         return res.status(404).send({ message: 'Chat history not found.' });
     }
@@ -383,6 +385,50 @@ router.post("/delete-message", authMiddleware, async(req, res) => {
         req.io.to(chat._id).emit('deleted-message', messageId);
 
         return res.status(201).json({ message: 'Message deleted.' });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+});
+
+router.post("/add-reaction", authMiddleware, async(req, res) => {
+    try {
+        const { participants, messageId, emoji } = req.body;
+
+        if (!Array.isArray(participants) || participants.length === 0 || !messageId || !emoji) {
+            return res.status(400).json({ message: 'Invalid body.' });
+        }
+
+        const chat = await chatDB.findOne({ participants });
+        const message = chat.messages.find(msg => msg._id.toString() === messageId);
+        if (!message) {
+            return res.status(404).json({ message: 'Message not found.' });
+        }
+
+        if (message.emojis.length + 1 >= 10) {
+            return res.status(400).json({ message: 'Maximum 10 reactions allowed per message.' });
+        }
+
+        const reactionIndex = message.emojis.findIndex(reaction => reaction.emoji === emoji);
+        if (reactionIndex === -1) {
+            message.emojis.push({ emoji: emoji, users: [req.user.id] });
+        } else {
+            if (message.emojis[reactionIndex].users.includes(req.user.id)) {
+                message.emojis[reactionIndex].users = message.emojis[reactionIndex].users.filter(user => user !== req.user.id);
+            } else {
+                message.emojis[reactionIndex].users.push(req.user.id);
+            }
+        }
+
+        await chat.save();
+
+        req.io.to(chat._id).emit('new-reaction', {
+            messageId,
+            user: req.user.id,
+            emoji,
+        });
+
+        return res.status(201).json({ message: 'Reaction added.' });
     } catch (e) {
         console.error(e);
         return res.status(500).json({ message: 'Internal server error.' });

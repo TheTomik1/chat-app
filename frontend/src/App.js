@@ -17,9 +17,9 @@ import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import { AuthProvider } from './context/Auth';
+import { PageThemeProvider } from "./context/PageTheme";
 
 import './styles.css';
-import {PageTheme, PageThemeProvider} from "./context/PageTheme";
 
 function App() {
     // TODO: Add reactions.
