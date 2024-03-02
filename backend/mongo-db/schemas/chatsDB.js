@@ -17,7 +17,8 @@ module.exports = model(
             }],
             emojis: [{
                 emoji: {type: String, required: true},
-                users: {type: Array, required: true}
+                users: {type: Array, required: true},
+                count: {type: Number, required: true}
             }]
         }],
         createdAt: { type: Date, default: Date.now },

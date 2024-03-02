@@ -246,10 +246,6 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     }
 
     const addReaction = async(emoji) => {
-        console.log("Emoji selected:", emoji.emoji);
-
-        console.log("Add reaction to message:", addEmojiMessage);
-
         try {
             const addReactionResponse = await axios.post("add-reaction", {
                 participants: currentChat.participants,
@@ -263,6 +259,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                     emoji: emoji.emoji,
                     timestamp: new Date().toISOString(),
                     chatId: currentChat._id,
+                    count: addReactionResponse.data.count,
                 });
 
                 setAddEmojiMessage(null);
@@ -270,6 +267,10 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         } catch (e) {
             if (e.response?.data.message === "Maximum 10 reactions allowed per message.") {
                 toast("Maximum 10 reactions allowed per message.", { type: "error" });
+                return;
+            }
+            if (e.response?.data.message === "You have already reacted with this emoji.") {
+                toast("You already reacted with this emoji.", { type: "error" });
                 return;
             }
 
@@ -319,7 +320,13 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                 setCurrentChatHistory(prevHistory => prevHistory.map(message => {
                     if (message.messageId === reaction.messageId || message._id === reaction.messageId) {
                         const updatedEmojis = Array.isArray(message.emojis) ? [...message.emojis] : [];
-                        updatedEmojis.push({ emoji: reaction.emoji, users: [loggedInUser.userName] });
+                        const existingEmojiIndex = updatedEmojis.findIndex(emoji => emoji.emoji === reaction.emoji);
+                        if (existingEmojiIndex === -1) {
+                            updatedEmojis.push({ emoji: reaction.emoji, users: [loggedInUser.userName], count: reaction.count });
+                        } else {
+                            // Update the existing reaction's count
+                            updatedEmojis[existingEmojiIndex].count = reaction.count;
+                        }
                         return { ...message, emojis: updatedEmojis };
                     }
                     return message;
@@ -351,11 +358,11 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                                 )}
                             </div>
                             <p className="text-gray-800 dark:text-white">{message.content}</p>
-                            {console.log("Message:", message)}
                             {message.emojis && message.emojis.length > 0 && (
                                 <div className="flex items-center space-x-2">
                                     {message.emojis.map((reaction, index) => (
-                                        <p key={index} className="text-2xl bg-blue-300 bg-opacity-70 border-blue-600 border-2 rounded-xl">{reaction.emoji}</p>
+                                        console.log("Reaction:", reaction),
+                                        <p key={index} className="text-2xl bg-blue-300 bg-opacity-70 border-blue-600 border-2 rounded-xl text-black dark:text-white p-1">{reaction.emoji} {reaction.count}</p>
                                     ))}
                                 </div>
                             )}
