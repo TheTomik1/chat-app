@@ -3,10 +3,12 @@ import { format, isToday, isYesterday, parseISO } from "date-fns";
 import axios from "axios";
 import socketIOClient from "socket.io-client";
 import { toast } from "react-toastify";
+import EmojiPicker, { Theme } from 'emoji-picker-react';
 
 import { FaEdit, FaTrash, FaGrinBeam } from "react-icons/fa";
 
 import { useAuth } from "../context/Auth";
+import { usePageTheme } from "../context/PageTheme";
 
 function formatMessageTimestamp(timestamp) {
     const messageDate = parseISO(timestamp);
@@ -22,6 +24,7 @@ function formatMessageTimestamp(timestamp) {
 
 const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     const { loggedInUser } = useAuth();
+    const { isDarkMode } = usePageTheme();
 
     const [socket, setSocket] = useState(null);
 
@@ -34,6 +37,9 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
 
     const [invitedUser, setInvitedUser] = useState([]);
     const [invitationFormOpenend, setInvitationFormOpened] = useState(false);
+
+    const [addEmojiMessage, setAddEmojiMessage] = useState(null);
+    const [addEmoji, setAddEmoji] = useState(false);
 
     async function fetchChatHistory() {
         try {
@@ -196,7 +202,6 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         }
     }
 
-
     const startEditMessage = (message) => {
         setChatEditMessage(message);
     };
@@ -232,6 +237,13 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
             setInvitationFormOpened(true);
         }
     }
+
+    const addReaction = (emoji) => {
+        console.log("Emoji selected:", emoji.emoji);
+
+        console.log("Add reaction to message:", addEmojiMessage);
+
+    };
 
     useEffect(() => {
         if (currentChat.participants) {
@@ -296,19 +308,25 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                                 )}
                             </div>
                             <p className="text-gray-800 dark:text-white">{message.content}</p>
+                            {message.emojis && message.emojis.length > 0 && (
+                                <div className="flex items-center space-x-2">
+                                    {message.emojis.map((reaction, index) => (
+                                        <p key={index} className="text-2xl">{reaction.emoji}</p>
+                                    ))}
+                                </div>
+                            )}
                             <div className="flex items-center space-x-4 mt-2">
                                 {loggedInUser.userName === message.sender && (
                                     <>
                                         <FaEdit className="text-blue-500 hover:text-blue-600 transition-transform no-select" onClick={() => startEditMessage(message)} />
-                                        <FaTrash className="text-red-500 hover:text-red-600 transition-transform" onClick={() => deleteMessage(message._id || message.messageId)} />
+                                        <FaTrash className="text-red-500 hover:text-red-600 transition-transform no-select" onClick={() => deleteMessage(message._id || message.messageId)} />
                                     </>
                                 )}
-                                <FaGrinBeam className="text-yellow-500 hover:text-yellow-600 transition-transform" />
+                                <FaGrinBeam className="text-yellow-500 hover:text-yellow-600 transition-transform no-select" onClick={() => setAddEmojiMessage(message)} />
                             </div>
                         </div>
                     </div>
                     {chatEditMessage && (chatEditMessage._id === message._id || chatEditMessage.messageId === message._id) && (
-                        console.log(chatEditMessage),
                         <form className="mt-4 flex flex-col md:flex-row md:items-center md:justify-between" onSubmit={editMessage}>
                             <input
                                 className="w-full md:w-auto p-4 h-12 bg-zinc-400 dark:bg-zinc-900 dark:text-white text-black placeholder-zinc-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -413,6 +431,22 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                         </button>
                     </div>
                 </form>
+            )}
+            {addEmojiMessage && (
+                <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-opacity-50 bg-zinc-900">
+                    <div className="bg-white dark:bg-zinc-800 p-4 sm:p-8 rounded-lg shadow-lg max-w-md flex flex-col items-center">
+                        <EmojiPicker
+                            onEmojiClick={(emoji) => addReaction(emoji)}
+                            theme={isDarkMode ? Theme.DARK : Theme.LIGHT}
+                        >
+                        </EmojiPicker>
+                        <button
+                            className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-red-600 transition-transform"
+                            onClick={() => setAddEmojiMessage(null)}>
+                            Close
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );

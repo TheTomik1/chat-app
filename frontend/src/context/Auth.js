@@ -1,9 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import {PageTheme} from "./PageTheme";
 
 const AuthContext = createContext(undefined);
 
 export const AuthProvider = ({ children }) => {
+    const navigate = useNavigate();
+
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [loggedInUser, setLoggedInUser] = useState({});
     const [loggedInUserProfilePicture, setLoggedInUserProfilePicture] = useState("");
@@ -14,6 +18,7 @@ export const AuthProvider = ({ children }) => {
                 const meResponse = await axios.get("me");
                 setIsLoggedIn(meResponse.status === 200);
                 setLoggedInUser(meResponse.data.userInformation);
+                navigate('/chat');
             } catch (error) {
                 setIsLoggedIn(false);
             }

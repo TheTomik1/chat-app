@@ -15,8 +15,15 @@ module.exports = model(
                 url: { type: String, required: true },
                 contentType: { type: String },
                 size: { type: Number }
-            }]
+            }],
+            emojis: {
+                type: Map,
+                of: [{
+                    user: { type: String, required: true },
+                    count: { type: Number, required: true }
+                }]
+            }
         }],
         createdAt: { type: Date, default: Date.now },
-    }
-));
+    })
+);

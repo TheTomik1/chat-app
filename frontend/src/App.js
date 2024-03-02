@@ -19,6 +19,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from './context/Auth';
 
 import './styles.css';
+import {PageTheme, PageThemeProvider} from "./context/PageTheme";
 
 function App() {
     // TODO: First message in new chat does not get received and needs fix.
@@ -81,13 +82,15 @@ function App() {
                 <ToastContainer toastClassName={isDarkMode ? "bg-zinc-600 text-white" : ""} />
 
                 <AuthProvider>
-                    <Navbar/>
+                    <PageThemeProvider>
+                        <Navbar/>
 
-                    <Routes>
-                        {routes.map(({path, element}) => (
-                            <Route key={path} path={path} element={element}/>
-                        ))}
-                    </Routes>
+                        <Routes>
+                            {routes.map(({path, element}) => (
+                                <Route key={path} path={path} element={element}/>
+                            ))}
+                        </Routes>
+                    </PageThemeProvider>
                 </AuthProvider>
                 <div
                     className="fixed bottom-5 right-5 rounded-full p-2 bg-gray-300 dark:bg-gray-800 shadow-lg cursor-pointer"
