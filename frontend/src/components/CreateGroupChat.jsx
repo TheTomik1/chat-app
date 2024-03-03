@@ -63,6 +63,13 @@ const CreateGroupChat = ({ onClose }) => {
             return;
         }
 
+        try {
+            await axios.get(`chat-history?participants=${user}`);
+        } catch (e) {
+            toast("You must have a chat history with the user to create a group chat.", { type: "error" });
+            return;
+        }
+
         if (!selectedUsers.includes(user)) {
             setSelectedUsers([...selectedUsers, user]);
         } else {

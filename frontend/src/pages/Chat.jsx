@@ -176,7 +176,7 @@ const Chat = () => {
                                 <p className="text-gray-600 dark:text-gray-400 text-lg">Participants: {currentChat.participants.filter(user => user !== loggedInUser.userName).join(', ')}</p>
                             </>
                         )}
-                        <ListChatMessages key={previousChats.indexOf(currentChat)}  currentChat={currentChat} setCurrentChat={setCurrentChat} />
+                        <ListChatMessages key={currentChat._id} currentChat={currentChat} setCurrentChat={setCurrentChat} />
                     </>
                 ) : (
                     <p className="flex justify-center text-center text-gray-800 dark:text-white text-xl">

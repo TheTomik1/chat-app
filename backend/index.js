@@ -40,7 +40,6 @@ io.on("connection", (socket) => {
         });
     });
 
-
     socket.on("join-chat", (chatId) => {
         if (!socket.userAllowedChats || !socket.userAllowedChats.includes(chatId)) {
             socket.emit("join-chat-failure", "You are not authorized to join this chat");
@@ -71,7 +70,7 @@ io.on("connection", (socket) => {
         if (!editedMessage || !editedMessage.chatId || !socket.userAllowedChats || !socket.userAllowedChats.includes(editedMessage.chatId)) {
             return;
         }
-        io.to(editedMessage.chatId).emit("edited-message", editedMessage);
+        io.to(editedMessage.chatId).emit("edit-message", editedMessage);
     });
 
     socket.on("delete-message", (messageId, chatId) => {

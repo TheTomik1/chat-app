@@ -151,6 +151,11 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
     async function sendMessage(e) {
         e.preventDefault();
 
+        if (currentChatNewMessage === "") {
+            toast("Message cannot be empty.", { type: "error" });
+            return;
+        }
+
         try {
             const sendMessageResponse = await axios.post("send-message", {
                 participants: currentChat.participants,
@@ -196,7 +201,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
 
             if (editMessageResponse.status === 201 && socket) {
                 socket.emit("edit-message", {
-                    messageId: chatEditMessage._id,
+                    messageId: chatEditMessage._id || chatEditMessage.messageId,
                     content: chatEditMessage.content,
                     timestamp: new Date().toISOString(),
                     chatId: currentChat._id,
@@ -353,9 +358,11 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                 setCurrentChatHistory(prevHistory => [...prevHistory, newMessage]);
             });
 
-            newSocket.on('edited-message', (editedMessage) => {
+            newSocket.on('edit-message', (editedMessage) => {
+                console.log("Received edited message", editedMessage)
+
                 setCurrentChatHistory(prevHistory => prevHistory.map(message => {
-                    if (message._id === editedMessage.messageId) {
+                    if (message._id === editedMessage.messageId || message.messageId === editedMessage.messageId) {
                         return { ...message, content: editedMessage.content, edited: true };
                     }
                     return message;
@@ -416,7 +423,7 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                     <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
                         <img src={currentChatProfilePictures[message.sender] || "https://robohash.org/noprofilepic.png"} alt="UserProfilePicture" className="w-12 h-12 rounded-full" />
                         <div className="flex flex-col">
-                            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                            <div className="flex flex-col space-x-2 md:flex-row md:items-center md:justify-between">
                                 <div className="flex items-center space-x-2">
                                     <p className="font-bold text-black dark:text-white">{message.sender}</p>
                                     <p className="text-sm text-gray-500 dark:text-gray-400">{formatMessageTimestamp(message.timestamp)}</p>
