@@ -7,9 +7,10 @@ is used for responsive design. The app uses websockets to allow for real-time co
 1. Clone the repository
 2. Run `npm install` in the /backend directory
 3. Run `npm install` in the /frontend directory
-4. Fill the .ENV file in the /backend directory with your MongoDB connection string and a secret key for JWT
-5. Run `node .` in the /backend directory
-6. Run `npm start` in the /frontend directory
+4. Run `node initialize.js` in the /backend directory to initialize the backend and API.
+5. Fill the .ENV file in the /backend directory with your MongoDB connection string and a secret key for JWT
+6. Run `node .` in the /backend directory
+7. Run `npm start` in the /frontend directory
 
 
 ## Usage
