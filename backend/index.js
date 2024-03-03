@@ -17,14 +17,9 @@ const calendarApi = express();
 const calendarApiServer = http.createServer(calendarApi);
 const io = new Server(calendarApiServer, { cors: { origin: 'http://localhost:3000', credentials: true } });
 
-calendarApi.use((req, res, next) => {
-  req.io = io;
-  next();
-});
-
 calendarApi.use(express.json());
 calendarApi.use(cookieParser());
-// calendarApi.use(morgan('combined'));
+calendarApi.use(morgan('combined'));
 calendarApi.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
 calendarApi.use("/api", endpoints);
@@ -56,11 +51,12 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        if (socket.user) {
-            console.log("User disconnected:", socket.user);
-        } else {
-            console.log("An unauthorized user disconnected");
+        if (!socket.userAllowedChats) {
+            return;
         }
+        socket.userAllowedChats.forEach(chatId => {
+            socket.leave(chatId);
+        });
     });
 
     socket.on("send-message", (message) => {
@@ -68,37 +64,42 @@ io.on("connection", (socket) => {
             return;
         }
 
-        io.to(message.chatId).emit("new-message", message); // Broadcasting the new message to all users in the chat
+        io.to(message.chatId).emit("new-message", message);
     });
 
     socket.on("edit-message", (editedMessage) => {
         if (!editedMessage || !editedMessage.chatId || !socket.userAllowedChats || !socket.userAllowedChats.includes(editedMessage.chatId)) {
             return;
         }
-        io.to(editedMessage.chatId).emit("edited-message", editedMessage); // Broadcasting the edited message to all users in the chat
+        io.to(editedMessage.chatId).emit("edited-message", editedMessage);
     });
 
     socket.on("delete-message", (messageId, chatId) => {
         if (!chatId || !socket.userAllowedChats || !socket.userAllowedChats.includes(chatId)) {
             return;
         }
-        io.to(chatId).emit("deleted-message", messageId); // Broadcasting the deleted message to all users in the chat
+        io.to(chatId).emit("delete-message", messageId); // Broadcasting the deleted message to all users in the chat
     });
 
     socket.on("new-reaction", (reaction) => {
         if (!reaction || !reaction.chatId || !socket.userAllowedChats || !socket.userAllowedChats.includes(reaction.chatId)) {
-            console.log("Invalid reaction or user not allowed to react in this chat");
             return;
         }
-        io.to(reaction.chatId).emit("new-reaction", reaction); // Broadcasting the new reaction to all users in the chat
+        io.to(reaction.chatId).emit("new-reaction", reaction);
     });
 
     socket.on("new-attachment", (attachment) => {
         if (!attachment || !attachment.chatId || !socket.userAllowedChats || !socket.userAllowedChats.includes(attachment.chatId)) {
-            console.log("Invalid attachment or user not allowed to attach in this chat");
             return;
         }
-        io.to(attachment.chatId).emit("new-attachment", attachment); // Broadcasting the new attachment to all users in the chat
+        io.to(attachment.chatId).emit("new-attachment", attachment);
+    });
+
+    socket.on("delete-attachment", (attachment, chatId) => {
+        if (!attachment || !chatId || !socket.userAllowedChats || !socket.userAllowedChats.includes(chatId)) {
+            return;
+        }
+        io.to(chatId).emit("delete-attachment", attachment);
     });
 });
 

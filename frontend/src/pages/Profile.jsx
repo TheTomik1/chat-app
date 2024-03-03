@@ -130,7 +130,6 @@ const Profile = () => {
                 window.location.reload();
             }
         } catch (error) {
-            console.error(error);
             toast("Error updating profile picture.", { type: "error" });
         }
     }

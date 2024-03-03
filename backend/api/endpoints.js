@@ -235,7 +235,6 @@ router.post("/create-chat", authMiddleware, async(req, res) => {
 
         await res.status(201).send({ message: 'Chat created.', chat: newChat });
     } catch (e) {
-        console.error(e);
         await res.status(500).send({ message: 'Internal server error.' });
     }
 });
@@ -292,7 +291,6 @@ router.post("/upload-attachment", authMiddleware, async(req, res) => {
             if (err instanceof multer.MulterError) {
                 return res.status(400).send({ message: 'Invalid file.' });
             } else if (err) {
-                console.log("Error: ", err);
                 return res.status(500).send({ message: 'Internal server error.' });
             }
 
@@ -324,7 +322,35 @@ router.post("/upload-attachment", authMiddleware, async(req, res) => {
             }
         });
     } catch (e) {
-        console.error(e);
+        await res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
+router.post("/delete-attachment", authMiddleware, async(req, res) => {
+    try {
+        const { messageId } = req.body;
+
+        if (!messageId) {
+            return res.status(400).send({ message: 'Invalid body.' });
+        }
+
+        const chat = await chatDB.findOne({ messages: { $elemMatch: { _id: messageId } } });
+
+        const message = chat.messages.find(msg => msg._id.toString() === messageId);
+
+        if (message.attachment.length === 0) {
+            return res.status(404).send({ message: 'No attachment found.' });
+        }
+
+        const oldAttachmentPath = path.join(__dirname, 'attachments', message.attachment.filename);
+
+        fs.unlinkSync(oldAttachmentPath);
+        message.attachment = null;
+
+        await chat.save();
+
+        await res.status(201).send({ message: 'Attachment removed.' });
+    } catch (e) {
         await res.status(500).send({ message: 'Internal server error.' });
     }
 });
@@ -355,7 +381,6 @@ router.post("/upload-profile-picture", authMiddleware, async(req, res) => {
             await res.status(201).send({ message: 'File uploaded.' });
         });
     } catch (e) {
-        console.error(e);
         await res.status(500).send({ message: 'Internal server error.' });
     }
 });
@@ -372,12 +397,6 @@ router.post("/send-message", authMiddleware, async (req, res) => {
         chat.messages.push({ sender: req.user.id, content: message });
         chat.updatedAt = new Date();
         await chat.save();
-
-        req.io.to(chat._id).emit('new-message', {
-            sender: req.user.id,
-            content: message,
-            timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
-        });
 
         return res.status(201).json({ message: 'Message sent.', chatId: chat._id, messageId: chat.messages[chat.messages.length - 1]._id });
     } catch (e) {
@@ -404,15 +423,8 @@ router.post("/edit-message", authMiddleware, async(req, res) => {
         chat.updatedAt = new Date();
         await chat.save();
 
-        req.io.to(chat._id).emit('edited-message', {
-            messageId,
-            content: message,
-            edited: true,
-        });
-
         return res.status(201).json({ message: 'Message edited.' });
     } catch (e) {
-        console.error(e);
         return res.status(500).json({ message: 'Internal server error.' });
     }
 });
@@ -435,11 +447,8 @@ router.post("/delete-message", authMiddleware, async(req, res) => {
         chat.updatedAt = new Date();
         await chat.save();
 
-        req.io.to(chat._id).emit('deleted-message', messageId);
-
         return res.status(201).json({ message: 'Message deleted.' });
     } catch (e) {
-        console.error(e);
         return res.status(500).json({ message: 'Internal server error.' });
     }
 });
@@ -474,16 +483,8 @@ router.post("/add-reaction", authMiddleware, async(req, res) => {
 
         const count = message.emojis.find(reaction => reaction.emoji === emoji).count;
 
-        req.io.to(chat._id).emit('new-reaction', {
-            messageId,
-            user: req.user.id,
-            emoji,
-            count: count,
-        });
-
         return res.status(201).json({ message: 'Reaction added.', messageId: messageId, count: count });
     } catch (e) {
-        console.error(e);
         return res.status(500).json({ message: 'Internal server error.' });
     }
 });
