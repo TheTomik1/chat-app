@@ -9,12 +9,11 @@ module.exports = model(
             content: { type: String, required: true },
             timestamp: { type: Date, default: Date.now },
             edited: { type: Boolean, default: false },
-            attachments: [{
-                filename: { type: String, required: true },
-                url: { type: String, required: true },
+            attachment: {
+                filename: { type: String },
                 contentType: { type: String },
                 size: { type: Number }
-            }],
+            },
             emojis: [{
                 emoji: {type: String, required: true},
                 users: {type: Array, required: true},

@@ -1,5 +1,6 @@
 node_modules
 
-profile-pictures
+/api/profile-pictures
+/api/attachments/
 
 .ENV

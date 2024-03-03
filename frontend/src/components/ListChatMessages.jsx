@@ -9,6 +9,7 @@ import {FaEdit, FaTrash, FaGrinBeam, FaPaperclip} from "react-icons/fa";
 
 import { useAuth } from "../context/Auth";
 import { usePageTheme } from "../context/PageTheme";
+import {MdModeEditOutline} from "react-icons/md";
 
 function formatMessageTimestamp(timestamp) {
     const messageDate = parseISO(timestamp);
@@ -218,6 +219,38 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
         setChatEditMessage(null);
     };
 
+    async function uploadAttachment(e) {
+        const targetFile = e.target.files[0];
+
+        const formData = new FormData();
+        formData.append("file", targetFile);
+        formData.append("messageId", attachment._id || attachment.messageId);
+
+        try {
+            const uploadAttachmentResponse = await axios.post("upload-attachment", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            if (uploadAttachmentResponse.status === 201 && socket) {
+                toast("Attachment uploaded successfully.", { type: "success" });
+
+                socket.emit("new-attachment", {
+                    messageId: attachment._id || attachment.messageId,
+                    chatId: currentChat._id,
+                    filename: uploadAttachmentResponse.data.filename,
+                    contentType: uploadAttachmentResponse.data.contentType,
+                    size: uploadAttachmentResponse.data.size,
+                });
+
+                setAttachment(null);
+            }
+        } catch (e) {
+            toast("Failed to upload attachment.", { type: "error" });
+        }
+    }
+
     async function deleteMessage(messageId) {
         try {
             const deleteMessageResponse = await axios.post("delete-message", {
@@ -334,6 +367,17 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                     return message;
                 }));
             });
+
+            newSocket.on('new-attachment', (attachment) => {
+                console.log("New attachment:", attachment); // The code does not work without this for whatever reason
+
+                setCurrentChatHistory(prevHistory => prevHistory.map(message => {
+                    if (message._id === attachment.messageId || message.messageId === attachment.messageId) {
+                        return { ...message, attachment: attachment };
+                    }
+                    return message;
+                }));
+            });
         }
 
         return () => {
@@ -379,6 +423,19 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                             </div>
                         </div>
                     </div>
+                    {message.attachment?.filename && (
+                        <div className="flex items-center space-x-4 mt-2">
+                            {message.attachment?.contentType.startsWith("image") && (
+                                <img src={`http://localhost:8080/message-attachment/${message.attachment.filename}`} alt="Attachment" className="w-1/3 h-1/3 rounded-xl" />
+                            )}
+                            {message.attachment.contentType.startsWith("video") && (
+                                <video src={`http://localhost:8080/message-attachment/${message.attachment.filename}`} controls className="w-1/3 h-1/3 rounded-xl" />
+                            )}
+                            {message.attachment.contentType.startsWith("audio") && (
+                                <audio src={`http://localhost:8080/message-attachment/${message.attachment.filename}`} controls className="w-72 rounded-xl" />
+                            )}
+                        </div>
+                    )}
                     {chatEditMessage && editingMessageId === (message._id || message.messageId) && (
                         <form className="mt-4 flex flex-col md:flex-row md:items-center md:justify-between" onSubmit={editMessage}>
                             <input
@@ -499,6 +556,30 @@ const ListChatMessages = ({ currentChat, setCurrentChat }) => {
                         <button
                             className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-red-600 transition-transform"
                             onClick={() => setAddEmojiMessage(null)}>
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
+            {attachment && (
+                <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-opacity-50 bg-zinc-900">
+                    <div
+                        className="bg-white dark:bg-zinc-800 p-4 sm:p-8 rounded-lg shadow-lg max-w-md flex flex-col items-center">
+                        <h1 className="text-2xl font-bold text-black dark:text-white">Add your attachment</h1>
+                        <p className="text-gray-500 dark:text-gray-400">You can upload an image, video, or audio file.</p>
+                        <label htmlFor="fileInput" className="bg-blue-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-blue-600 transition-transform cursor-pointer">
+                            Upload Attachment
+                        </label>
+                        <input
+                            type="file"
+                            id="fileInput"
+                            className="hidden"
+                            accept={".png, .jpg, .jpeg, .mp4, .mp3"}
+                            onChange={uploadAttachment}
+                        />
+                        <button
+                            className="bg-red-500 text-white px-4 py-2 font-bold rounded-lg mt-4 hover:bg-red-600 transition-transform"
+                            onClick={() => setAttachment(null)}>
                             Close
                         </button>
                     </div>

@@ -1,4 +1,5 @@
-const router = require('express').Router();
+const express = require('express');
+const router = express.Router();
 const { format } = require('date-fns');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
@@ -26,7 +27,7 @@ const profilePicturesStorage  = multer.diskStorage({
         cb(null, `${req.user.id}-${file.originalname}`);
 }});
 
-const uploadProfilePicture = multer({ profilePicturesStorage  });
+const uploadProfilePicture = multer({ storage: profilePicturesStorage });
 
 const attachmentStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -34,9 +35,10 @@ const attachmentStorage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         cb(null, `${req.user.id}-${file.originalname}`);
-}});
+    }
+});
 
-const uploadAttachment = multer({ attachmentStorage });
+const uploadAttachment = multer({ storage: attachmentStorage });
 
 router.post("/register", async(req, res) => {
     try {
@@ -280,6 +282,49 @@ router.post("/delete-chat", authMiddleware, async(req, res) => {
 
         await res.status(201).send({ message: 'Chat deleted.' });
     } catch (e) {
+        await res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
+router.post("/upload-attachment", authMiddleware, async(req, res) => {
+    try {
+        uploadAttachment.single('file')(req, res, async (err) => {
+            if (err instanceof multer.MulterError) {
+                return res.status(400).send({ message: 'Invalid file.' });
+            } else if (err) {
+                console.log("Error: ", err);
+                return res.status(500).send({ message: 'Internal server error.' });
+            }
+
+            if (!req.file) {
+                return res.status(400).send({ message: 'No file uploaded.' });
+            }
+
+            const fileName = `${req.user.id}-${req.file.originalname}`;
+
+            if (req.body.messageId) {
+                const chat = await chatDB.findOne({ messages: { $elemMatch: { _id: req.body.messageId } } });
+
+                const message = chat.messages.find(msg => msg._id.toString() === req.body.messageId);
+
+                if (message.attachment.length > 0) {
+                    const findUserAttachment = message.attachment.find(attachment => attachment.filename.startsWith(req.user.id));
+                    const oldAttachmentPath = path.join(__dirname, 'attachments', findUserAttachment.filename);
+
+                    fs.unlinkSync(oldAttachmentPath);
+                }
+
+                message.attachment = { filename: fileName, contentType: req.file.mimetype, size: req.file.size };
+
+                await chat.save();
+
+                await res.status(201).send({ message: 'File uploaded.', filename: fileName, contentType: req.file.mimetype, size: req.file.size });
+            } else {
+                await res.status(400).send({ message: 'No message ID provided.' });
+            }
+        });
+    } catch (e) {
+        console.error(e);
         await res.status(500).send({ message: 'Internal server error.' });
     }
 });

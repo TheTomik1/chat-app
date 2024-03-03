@@ -28,6 +28,8 @@ calendarApi.use(cookieParser());
 calendarApi.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
 calendarApi.use("/api", endpoints);
+calendarApi.use("/message-attachment", express.static("./api/attachments"));
+
 
 io.on("connection", (socket) => {
     socket.on("authenticate", (authData) => {
@@ -91,7 +93,13 @@ io.on("connection", (socket) => {
         io.to(reaction.chatId).emit("new-reaction", reaction); // Broadcasting the new reaction to all users in the chat
     });
 
-    // Add more event handlers as needed
+    socket.on("new-attachment", (attachment) => {
+        if (!attachment || !attachment.chatId || !socket.userAllowedChats || !socket.userAllowedChats.includes(attachment.chatId)) {
+            console.log("Invalid attachment or user not allowed to attach in this chat");
+            return;
+        }
+        io.to(attachment.chatId).emit("new-attachment", attachment); // Broadcasting the new attachment to all users in the chat
+    });
 });
 
 
